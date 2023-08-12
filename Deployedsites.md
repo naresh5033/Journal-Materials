@@ -1,0 +1,18 @@
+- spotify clone -next 13 .[deployed url](https://next13-spotify-2bpjpj5um-antonioerdeljac.vercel.app/) - ✅
+- Ai-SaaS genius - next 13 [deployed url](https://ai-saa-s-nextjs.vercel.app)✅
+- Real Time chat app - next 13 [deployed url](https://friendszone.vercel.app)✅
+- airbnb [depployed in versel and the url is](https://airbnb-next-rouge.vercel.app)✅
+- Dribble [deployed in netlify and the url is](https://rad-boba-1a4937.netlify.app/)✅
+- ecommerce-admin [deployed in netlify and the url is](https://shopping-zone-three.vercel.app/)✅
+- 3D product-threejs [deployed in netlify and the url is](https://resonant-seahorse-56e6c4.netlify.app)✅
+- nft card game avax [depployed in netlify and the url is](https://frabjous-baklava-27a19b.netlify.app/)✅
+- nft crowd funding app [deployed in netlify and the url is](https://scintillating-chimera-0b7932.netlify.app/)✅
+- The zillow real estate web3 eth hh [deployed in](https://hh-millow-app-eth.vercel.app/)✅
+- the open sea -2 bored ape yacht club [deployed in vercel](https://opensea-eth.vercel.app/)✅
+- the HH-blog-app was [deployed in vercel](https://hh-blog-app.vercel.app/) ✅
+- uniswap-app [deployed url is](https://main--incandescent-sprite-07b6f1.netlify.app/)✅
+- hh-lottery app deployed in netlify and the [deployed url is](https://phenomenal-macaron-5814df.netlify.app/)✅
+- nft market place can't deploy due to the moralis server revocation
+- The 3D mobile website app was deployed in netlify and the [deployed url is]()
+- the ai companion the app is deployed in vercel and the [deployed url is](https://ai-companion-seven.vercel.app/)
+- The Threads clone - next 13 the app is deployed in vercel and the [deployed url is here](https://threads-chatx.vercel.app/)
