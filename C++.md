@@ -633,22 +633,46 @@ ex - Feline* ptr {dynamic_cast<Feline*>(&animal1)} // here we re changing the (i
 3. weak pointers:
    - unlike the shared ptr, the weak ptrs will not include the no.of owners, means we use the weak ptr to observe the obj in mem. but the weak ptr will **not keep the obj alive in mem** if nothing else needs it. where as the shared ptr will keep the obj alive in mem.
    - syntax -` weak_ptr<int> wpptr1;{
- shared_ptr<int> sptr1 = shared_ptr<int>(25);
- wptr1 = sptr1; }` // the wptr mem was deallocated when its last owner(sptr1) left its scope.. means it won't keep the obj alive..
+shared_ptr<int> sptr1 = shared_ptr<int>(25);
+wptr1 = sptr1; }` // the wptr mem was deallocated when its last owner(sptr1) left its scope.. means it won't keep the obj alive..
 
 ### Function Pointer
 
-- The pointer that stores the mem addr of the fns (instead of the var's mem addr) 
+- The pointer that stores the mem addr of the fns (instead of the var's mem addr)
+
   - as we konw if we ve the fn ex int get(){}; and if we print that w/o the paranthesis we will get the addr of the fn ex cout<< get; //now we can store this addr of the fn.
-  - syntax - int(*fptr)() = get; // just the return type ptr name and the param and assign it to the fn (w/o paranthesis) its just the mem addr
-  - syntax 2 - for the fn with params ex- int(*fptr)(int, int) = add; 
+  - syntax - int(\*fptr)() = get; // just the return type ptr name and the param and assign it to the fn (w/o paranthesis) its just the mem addr
+  - syntax 2 - for the fn with params ex- int(\*fptr)(int, int) = add;
 
 - **why and when to use fn ptr**
   - we can use em to pass the arg of the fn ptr to the another fn.. in order to optimize the code.
-  - first we assign them as a param to the fn, then ex - void custsort (vector<int>& numVect), bool(*fptr)(int, int){} // now in this fn ptr we can assign to the assending sort or desending sort as long as the fns return same type and same type param (as mention in the fptr)
+  - first we assign them as a param to the fn, then ex - void custsort (vector<int>& numVect), bool(\*fptr)(int, int){} // now in this fn ptr we can assign to the assending sort or desending sort as long as the fns return same type and same type param (as mention in the fptr)
   - now in our main fn - ` vector<int> mynmber = {5,2,3, 4};
-                           bool(*fptr)(int,int) = ascending;
-                           custsort(mynumber, fptr); 
-                           print(custsort);` // since the fptr is pointing to the ascending() it will sort em in ascending.. lly we can now change the ptr to points descendin()
-                      
+                       bool(*fptr)(int,int) = ascending;
+                       custsort(mynumber, fptr); 
+                       print(custsort);` // since the fptr is pointing to the ascending() it will sort em in ascending.. lly we can now change the ptr to points descendin()
   - so this way it solve the code repeatation, and its easier to use.
+
+### Function ptr, Delegates and Callbacks
+
+- delegates will give us the flexibility to pass the method as arg to other methods
+- as we know in c# has this concept of delegates, but bts they implemented with fuction ptr..
+- lets see how it works in cpp which makes it easier for us to understand in any other langs about the delegates.
+- lets ve an ex of 2 forms with parent and child(gui) send msg to each other.
+- syntax ex - void (**closure \*fptr)(int, int) = showmsg; //its same like the fn ptr but ve to add **closure for the method ptr
+- note: \_\_closure is C++ Builder specific extension. With standard C++, the function pointer must be a "member function pointer"
+- now we can use this fptr as the arg
+- steps - 1. create a fptr on our parent form 2. pass that fn to the child form 3. save that fn ptr as global var in the child 4. invoke it when we need
+
+### ctor Delegation
+
+- allows one ctor to use another ctor with in the same class. which can reduce the code repeatation
+- lets say we ve a class with 4 mem vars and we instantiate a couple of ctor one with 3 var as param and the other ctor with all the mem vars as the param.
+- and we will let the compiler decide which one to use based on the args that we passed during the runtime.
+- but instead we can extend from one ctor to another, ex -
+- `Rectangle(int l, int w){lenth = l; width = w};
+  Rectangle(int l, int w, string col) : Rectangle(l,w) {color = col;}
+
+  //by delegating / extending the one ctor to another, we can reduce the code and still ve the same functionality
+
+  - but now the if the ctor2 will call ctor1 during the runtime as it inherted..
