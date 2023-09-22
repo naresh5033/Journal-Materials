@@ -851,5 +851,78 @@ to make an observable from the click() event, ex const clicks = Rx.Observable.fr
   - once we dispatch the messages, then the webworker can listen to the event thru addEventListener('message',({data}) => { const processedImage = customExpensiveImageData(data)}; postMessage(processedImage)) // here we re also sending back the processed image back to the main thread. 
   - and in the same way the worker can send some msg to  the main thread. and to receive the message from the webworker in main thread we can impl the onMessage handler fn ex - this.worker.onmessge = ({data}) => {console.log(data)} 
 
-    - 
+
+### change Detection (zone js)
+
+1. view Checking: 
+  - synchronization of the component view with the data model.. 
+  - as we know to connect the data model vals with in the view (templates) we use data bindings (such as interpolation, prop binding or event binding etc) and all those binding are of interest in the Change detection. since these bindings ve the direct impact in the view.
+  - **changeDetectorRef** - from ng core.. we can call detectChanges() in this class.. if we call this in our root comp then it will checks for the changes in our whole app view.
+  - there re diff types of views 1. root view 2. component view 3. embedded view
+  - for this comp and the embedded view are represented by the class called **viewRef** and the instance of the class is created for every one of those views
+  - and the root view is represented by the **rootViewRef** class which extends the ViewRef class
+  - and these 2 classes implements the interface **changeDetectorRef** .. as we know the context has the ref to the corresponding class .. the ViewRef has the ref to the comp's template fn and this fn takes ctx as the val source for binding.. when we trigger the change detection in any of the classes it triggers the refreshView().. which performs the view checking process.
+  - the initial change detection happens as the process of app bootStrapping process ex- .bootStrapModule().. the **applicationRef** service (can inject to our comp) has the method called bootstrap()
+
+2. Zone js (change detection)
+   - automatically re exec the view checking when app state might change..means when the async fns / operation completes and tells that ng its a time to check for the change detection.(view Change)
+   - for this zone js uses the technique called **monkey patching** to patch the browser native api and bring some additional behavior, interceptor and hooks to it..
+   - when we bootstrap the comp the ng creates the instance of the ngZone class and one of the responsibility of this class is to create a child zone for the ng app. and it uses special interceptors(onInvoke, onHasTask) or cb in order to bring the connection for the ng app and the zone..
+   - when the micros task queue is empty then it will emit a event (onMicroTaskEmpty) to tell the ng the state of some comp might change and time for the change detection check.. the injectable class NgChangeDetectionSchedule will listen for that event and when its triggered it will schedule the view checking event for the app, (ex - this.applicationRef.tick()) // and this .tick() will go thru the arr of views list and apply the view.detectChange() // performs the recursive view checks for the whole app view..
+   - and ng will visit each views in the app from the top to bottom and checks each bindings and run check hooks for corresponding comps and re render the view according to the new val in binding.
+- the change detection event will triggered only **if the 2 conditions are fulfilled..**
+  1. this event has to be happened within the zone.. the event listener needs to be registered in our ng app
+  2. this event needs to ve some handlers (event handlers)
+
+- zone js can only tells there is some change happens but it can't tell where exactly the change happened.. that's why its recursively checking the whole view checking (.tick()).. but this was solved in the **onPush**..
+
+3. OnPush (change Detection)
+   - to resolve the unnecessary work that the change detection does (like recursive checking the entire app comps for the changes).. we can config this on every comp by using **changeDetection: ChangeDetectionStrategy:OnPush** ..
+   - we can call the .markForCheck() from the changeDetectorRef to mark the comp as dirty for the next change detection cycle. which will be scheduled by the zone js (after the exec of async (setTimeOut()))
+   - this markForCheck doesn't trigger the change detection it just marks the comp as dirty..this method not only marks itself as dirty but also all of its **parents** comps as dirty..
+   - when we can use this method ? 1. when the comp state is change inside the comp event handler..and the another use case where the comp changes dirty automatically is 2. when the val of comp's i/p is changing. and it happens during the view check phase.when ng finishes the dirty check for the parent comp, it will start perform the same thing for the children.. and dirty child will be checked during the current (cdc)cycle.
+   - when ng figure out if the i/p binding has changed it compares the val by **Reference** 
+- last use case when we don't ve to call for the mark for check method explicitly is when we use the async pipe operation under the hood .. since bts async pipe call the mark for check method every time a new val is emitted into the stream..
+- in summary by marking the comp dirty we re telling the ng don't check for the cdc (also its child / sibling) only when the async event happens outside of the tree (along with the comp and its sibling)... so ng will check the view of the other comps in the tree (not the one with the onPush and its sibling) only if the comp is not dirty ng will leave don't check their view.
+- the next scenario if the other comp emits the async event (which has the data binding in the onPush) then async event will completed and notifies the ng about the change in the onPush comp.. the ng will now mark the comp as dirty and completes the check for the rest of the view.. then ng will traverse to the child and looks the onPush along with the dirty..and makes the cdc..
+- scenario 4. now in the tree both page and breadCrumb comp are dirty and the async event happens in the outside of the tree.. lly the ng root will check and marks the pages as dirty (since the data change).. and proceeds to traverse the tree and finds the breadCrumb comp as OnPush but not dirty so it will leave for the cdc just checks the other comps in the tree (which all  of em has the default strategy)
+- scenario 5. now all the comps are OnPush strategy enabled. if there is any async event emitted in any of the tree and all the parent in the tree will be marked as dirty..and the cdc is triggered the other comp in the tree (has onPush) but are not dirty so it will not check for the view changes for em (and their children) .. but only the comp that are marked as the dirty it will check for the view changes..
+- scenario 6. now the comp with async pipe and the i/p change.. the async pipe subscribe to the observable .. this async pipe will bts runs **.markForCheck()** method and making the comp and its ancestors dirty..
+
+### Signals
+
+- will improve the change detection make it more targeted and perform cdc only for the comps where the data model has changed..
+- the signals can take over some tasks b4 it was done in **RxJs**.. but now signals can do it in more easier and efficient ways. especially in the synchronous reactivity.
+- but still we require Rxjs especially when it comes to async reactivity. there rxjs just shines .. in such cases we can just plugin and use otherwise just we can stick with the signals..
+- we can import the signal() and convert some of our comp's class prop into signal..now the read and write way of prop will be changed .. now to assign the new val we ve to use the **set()** and provide the new val. it will notify all the consumer of this signal about the value..and to read/ consume the val from the signal we ve to use the prop like a fn 
+  - ex search: signal(""); setString(e) { this.search.set((e.target as HTMLInputElement).value ); // and to call this.search() // call the search prop as the fn.. 
+- in order to update the val there are 2 methods we can use **mutate** and **update** ex . lets ve a user obj (of signal with 2 user objs) user = signal([{},{}]) ; and to update (or add new user).. addUser(){ this.user.update(users => [...user, {id:1, name: 'naresh'}]) }; // lly we can mutate the array ex this.users.mutate(users.push({id:1, name: 'naresh'}));
+- **Computed()** just like the vue.. this fn will track all the signal changes (the state/ val of the signal changes) ex - filterUsers = computed(() => this.users.filter(u => u.name.startsWith(this.search()) ) // this cb logic will be exec each time one of the signals inside the computed fn changes.. since this computed fn returns signal in the template we ve to define the prop like fn
+- ex - <li *ngFor="let user of filterUsers()"> {{user.name}} <li/>
+- another use case we might encounter when working with signal is perform some side Effect when the val of any signal is changing..ex if we want to store the last val of the search signal in the local storage and use it as the initial val for the signal if the user reloads the page.. for that we can use the fn called **effect()**
+- ex - logger = effect(()=> {localStorage.setItem('searchString', this.search())})); // now whenever one of the signals changes the effect fn will be executed and the val of the search() will be end up in the local storage... and if we want to read the val from the local storage as the initial val for the signal. we can read it as ..search = signal(localStorage.getItem('searchString') || ""));
+
+- as already mentioned the RxJs and the signals work together.. there is a fn (helper fn) that will allow us to convert the **signal into Observables** and vice versa.. the fn is **fromSignal()** this fn takes the signals and returns observable..so we can apply pipe operator and other rxjs code to it ex - filterUsers = fromSignal(this.search()).pipe(); // lly to convert the observables into signal we can use the fn **fromObservables** ex - filteredUsers = fromObservable(this.someObs)..//
+- now that with the introduction of signal we don't ve to heavily depend upon the zone js for the CDC..besides the signal will improve performance of other sections like lifecycle hooks, 
+- **Reactive primitive** primitives are the building blocks that app gave us to build the apps.now ng comes with some new reactive primitives which we can tell the framework which data our ui cares about and when the data changes.. with that info ng can easily keep oup app's ui in sync with the data as it changes..
+
+- **signals from ng google**
+- **3 new reactive primitives** 1. writable signals 2. Effects 3. computed signals
+- we can think of signal as the var but unlike the normal var signal knows where in the app the val is used like which comps are displayed the val in their templates, and then it can signal to the comp whenever we change the val inside.
+- **computed** - some signals we want to change directly but that's not always the easiest way to do things.. now the computed signals also hold vals but instead of changing em directly they derive the val from the vals or other signals..since the signals can notify the consumers when they change the computed signals will automatically kept up to date w/o us having to set em ourselves.. this is how computed derived on signals
+- **Effect** - is the last piece in the signal puzzle.. effect is something we want to ve happen whenever some signals change.. with the effect api we can tell ng to run a fn which is gon to use the val of some signals and ng will take of automatically re running the fn if the signals are update 
+  - in that ex - the effect was dependent on the signal and the computed val
+
+### NgRx
+
+- source code [here](https://github.com/joshuamorony/ngrx-ionic-example.git)
+- the NgRx is the state management for the Ng... as we know if there is state changes in our comp the comp will dispatch the action (indicate that something happened), the **reducer** detects all of the actions being dispatched in the app and determine how the state should be modified as the result .. they detect the action, take the current state and store the new state in the **Store**.
+- and in the global store is where all of our app states lives (its really a one big obj full of data (json)) and if the comp wants to use the current state it can use the **Selector** to pull in the state that needs from the store
+- in this we also ve the concept of **effect**.. the reducers (that takes in action) and create the new state are **pure fn** (for the given i/p they always produces the same o/p)  and also the pure fn should not create any side effects, means the fn should not change anything anywhere in the app.. 
+- when we dispatch an action we need to give it all of the  data that the reducer needs to make the state modification immediately, we can't make a async call to load in data from the server .. so in that case if we wan't to make the async call to fetch the data from the server to load in to the state this may take some time.. and this is where **effects** comes into play.
+- like the reducer the effect can also listen to all the action being dispatch into the app but unlike reducer (which has to be pure fn) the effect can takes/run whatever sideEffects it likes.. the effect will fetch the data form the service once the data has finished loading it will dispatch new action,(success or failure (async cb)).. now the reducer can handle the success action that was dispatch from our effect (and it can update the data prop in the store).
+
+- if we see in the ex code the (especially the file todosEffect.js) it was heavily depend on the RxJs for the side effect.. if we look the code while creatingEffect() inside the cb we will be making new observables and then transform (pipe), then map the todos to the loadSuccessTodos (success cb) success cb which is a promise so if its fulfilled / resolved we will load the data here if its rejected cb then we will catch in the next fn catchError()  (if the observable throws any error)
+- in the saveTodos$ event (effect) we used the **withLatestFrom()** function in the RxJs library. check out that fn from the doc.. this fn will get the latest data from the store.. this effect is interesting coz the saving of the state(todo) in the store is a **side effect** and it doesn't ve any impact on the app state.. so we don't ve any dispatch action (disable it)..
+- and finally we wanna make sure we supply our reducers and effects to the store modules, and effect modules in the app.module.ts 
 - 

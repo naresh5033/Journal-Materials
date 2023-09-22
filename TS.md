@@ -140,5 +140,540 @@
 
 - **Type predicate**
   - the kw **is** ex - function isFish(pet: Fish|Bird): pet is Fish{} // here we re strongly telling that pet is the type fish.
+----------------------------------------------------------------
+
+# React hooks
+
+### useState 
+
+- the hooks can be used only in the function component .. not in the class component
+-  when we use the state hook with the fn declaration then it runs only once every time our comp loads ex const [state, setState] = useState(() => { console.log("only once"); }); // so it is useful when we re really using some complex or computational task..
+- and one thing to keep in mind if we use the object in the useState hook as the default val ex const [count, setCount] = useState({count: 4, theme: blue}) // then to update just one field in the obj it will entirely override the obj so we will loose the second field to make it in righ way we ve to spread and then update the field we wanted 
+  - ex - function decrementCount() {setState(prevState => { return { ...prevState, count: prevState.count -1 }; }); // so this way our theme field will still be intact..
+- so this way our entire object will get updated, not will merge with the fields..
+- or we can use separate state hooks for the fields of our obj ex - one for the count and the other for the theme..
+
+### UseEffect 
+
+- with this hook we re telling that we want some sort of side effect when some thing happens / changes in our comp.
+- and that changes(or resources) is what we put in the dependency array.. 
+- or just leave it empty and it will loads only once during the component initialization or **onMount**
+- most of the time we will use this hook for some event listener and then we can remove the event listener inside the hook (in the return statement)..
+
+### UseMemo 
+
+- to memoize the state or vals.. or caching the val so we don't ve to re computed every single time...
+- when we use the state hook / to update the states in react it will render the comp which causes some delay since it renders the comp from top to bottom.. ex when we ve slow() (the simulated fns which loops for ex millions of times) which causes delay in loading our comp..
+- so we can cache the slow fns return val and memoize em ..  so we don't ve to recalculate the slow() over and over again..
+- ex - useMemo(() => { return slowFunction(number)}, [number])
+
+- one caveat with this hook is it causes some performance overhead.. since its saving the val in some mem location .. so we can't use this hook for everything instead we ve to use some really computational task for caching..
+
+- there is second use case for this useMemo is **referential Equality** means when we compare 2 diff vars in js it will compares the ref in case of objs and arrays. whenever we want to make sure the ref of the object or the array are the exact same as it was the last time we rendered .. and we only want to update the reference of the obj/ array.  
+- so we can use when our obj exacts same ref we wanna cache in the memo hook, and then update the changes in the useEffect .ex in the themes obj.. // the useEffect will compare the old theme style and the new theme style and they are exact same object.
+
+- these are the 2 most common use cases for the useMemo.. 
+
+
+### useRef
+
+- ex - if we wanna use the i/p and to get the val that we type .. we can can think of using a using useSate but it will render the comp for every single keystroke we type in ..
+- and if we set in the useEffect for the state changes it rerender and re render and causes infinite loop.. 
+- so the state is not the right way to do.. instead we ve to use the useRef..
+- the ref is just sim to the state but the diff here is it will not cause our component to **re-render** ..
+- and this hook return the obj..the obj with the current prop.. and we update the current prop and that is wat get persisted diff renders..
+- ex - const renderCount = useRef(1); useEffect(() => { renderCount.current = renderCount.current + 1; },);
+
+- and the another important use case the useRef will be used is **to reference the elem** inside the html.. and as we know each elem in the html has the **ref attr** 
+  - ex -const inputRef = useRef(); <input ref={inputRef} // and if we use this var inside a fn ex - fucntion foucus() { inputRef.current.focus() } // this i/p.current referred the entire i/p el.. so we can access the val from the i/p attr.. ex - inputRef.current.value; //
+  - but it will update the ref of the val not the state (so we don't wanna do this) and lly append child we don't want to append with the use ref instead with the jsx..
 - 
+- another use case of the ref is to store the prev val of our state ex - const prevName = useRef(''); useEffect(()=> prevName.current = name},[name]) // where name is the i/p el val attr
+- so in fn comp we need to use refs in order to persist states if we re not using useStates..
+
+### UseContext 
+
+- the context hook itself is the context api.. to share / pass the data b/w the child and the parent w/o always depend of the prop.
+- when we re using context hook in the **class comp** there is 2 sections 1. **context provider** this is where we wrap all our code in to .. ex - <ThemeContextProvider value={darkTheme} /> .. has the val prop.. 
+- and then the **context **
+
+- if we using it in a **function component** then we ve to use the hook not the context provider..  
+- the context is to store the data and having accessible in 2 comp in any where in the dom..w/o passing to props.
+- the way is to create a custom context and it must ve one default val ex - export default DashBoardContext = createContext<User | undefined>(undefined); 
+- and to use this we ve to use it with the provider ex - <DashBoardContext.Provider value={user}> <DashBoard> <DashBoardContext.Provider/>// 
+- now we can get the user directly from the context is by **consuming**(consumer.. initially we provide the provider now the consumer) the context with the useContext hook - ex - const user = useContext(DashBoardContext);
+- if by any case if we don't wrap the comp(or if we forget to add the content provider) with the provider then the user will be undefined .. and won't render anything.
+- to bypass this we can create our custom hook that will handle all of the logic for us..
+- ex - export default useUserContext() { const user = useContext(DashBoardContext); if (user === undefined) { throw new Error ("user must ve to be definded") } return user; }  // by this way if we ve the user undefined then we will get the error... which is easier for us to debug.
+ and now we can use our custom hook instead of the useContext() inside the comp.
+
+### UseReducer 
+
+- just like the use state.. the use reducer will also help us to manage the state and re renders the comp whenever the state changes.
+- its just like the **redux** and takes most of the boiler plate from the redux.
+- generally when working with the use reducer we will pass in the obj as the initial state instead of the val ex - function reducer(state, action) {return {count: state.count +1} }; const [state, dispatch] = useReducer(reducer, {count: 1}) // and the dispatch will update our state it will call our reducer() function .. the dispatch will dispatch the action..
+- now we can call the dispatch ex - function increment() { dispatch() } 
+ and the code we can find [here](https://blog.webdevsimplified.com/2020-06/use-reducer/)
+- the good thing about the reducer() we just pass down our stuff to the one dispatch() .. that hanldes all our use cases.. and we no longer ve to pass in handle click() handle complete(), handle New() or delete() we just pass in one dispatch which will do all the things and makes our code cleaner w/o the bunch of props.. 
+
+### UseCallback 
+
+- this hook is just as similar as the useMemo .. 
+- lets ve an ex if we ve a fn (getItems) and then we use it in another fn List() and we use this getItems function inside the app comp useEffect's dep array .. this fn will recreated every single time in the app comp (when we change the list())..
+- and we we pass this fn into the list() getItem() a brand new fn.. and its recreated every time..  this is where we wanna use the useCallback .. ex - const getItems = useCallback(() => { return [number, number +1, number +2]}, [number]) // now this will render only when the number changes.
+- the one difference between the useMemo and the useCallback is useMem will take fn and will return the returned val of the fn..
+-  but useCallback is diff it will take a fn and that is what it will return. 
+- so in the above ex if we use useMemo .. the getItem is set to the array (in return), instead of setting to the entire fn..
+- since its(useCallback) returning the fn we can pass in param for the fn inside the hook..
+- the only reason we ever want to use the useCallback is **referential equality** 
+- and the other reason we can think of using the useCallback hook is.. when the fn is actually really slow..
+
+### Custom Hook
+
+- how to create our own hook.. to store the vars in the local storage..
+- make our fn with the prefix of use so react will do all the linting and pre check for us..
+- ex - export default function useLocalStorage(key, initialValue) { const [value, setValue] = useState(''); return [value, setValue]; } //now we can use this hook as the same as the useState hook..
+- and to get the stored val .. function getSavedValue(key, initialValue) { JSON.parse(localStorage.getItem(key)) ..// the key is what our vars is (that we store in the local storage.)
+- refer the code [here](https://blog.webdevsimplified.com/2019-11/how-to-write-custom-hooks/).. 
+  - and we can save our local storage inside the useEffect ex - useEffect(() => { localStorage.setItem(key, JSON.stringify(value))} , [value]) return [value, setValue] ..// we need to stringify the val b4 saving to the local storage..
+
+### UseLayoutEffect 
+
+-  this hook is almost similar to useEffect .. we can use this hook when we need to set the css prop to the comp itself..
+- the useEffect is asynchronous, they are not gon block the dom .. now the difference between useEffect and the useLayoutEffect is not asynchronous..
+- when we use useLayoutEffect it runs synchronously b/w when react calculates our dom and when it actually prints to the screen..which means useLayoutEffect are perfect when we need to do something on the layout of our dom..ex - measure the dom el and move things into the dom that are visible to the user, we can use this hook..
+- but its not performance since it is synchronous.
+- so that's the main difference between useEffect and the useLayoutEffect .. whenever we re manipulating the dom in a way the user can directly see based on the measurements or other things we need to use the useLayoutEffect otherwise we may ve the slight flash/flicker that we see in the useEffect hook
+- we can do the measurements of the dom with hte getBoundingClientRect() .. see the ex code [here](https://blog.webdevsimplified.com/2020-04/use-effect/)
+- the useEffect runs after the dom is rendered unlike the useLayoutEffect.
+
+### useTransition
+
+- is meant to speed up the app and feel more responsive.. event there is lot going on.
+- in that ex he simulated a list with lot of data in it which is time computation.. complex task
+- and in that ex the setInput(), and the setList(which is more computation) // the react will try to combine all the diff state changes in one call and makes it all it once b4 re render our app... which is why its slow..
+- instead we want to make the setInput() as the higher priority it runs ahead of time.. than our setList() with the lower priority..
+- so that is what the transition hook will do it will allow us to make 2 diff state changes at the time and **rank em with** the priority.
+- this hook has 2 fns (we can destruct) 1. isPending and the 2. startTransition .. ex - const [isPending, startTransition] = useTransition(); // now we can put all the computational related stuff(of the List()) inside the startTransition().. 
+  - ex startTransition(() => { const l=[]; for(let i=0; i<20,000; i++) { l.push(i); }); setList(l) }); // by doing this we re telling this setList() is less priority..
+  - so now our high priority stuff setInput() will render first in the dom. and the low priority when it finishes the computation bts./
+- refer the code [here](https://blog.webdevsimplified.com/2022-04/use-transition/)
+- there is one thing we want to know about this hook is we ve to use this only when it absolutely needed .. since when we use this hook we make our app more render than the normal.. even in this above ex we ve this hook renders our app 2 times.
+
+### UseDeferredValue hook
+
+- the way this hooks works is similar to the debounce or throttling..
+- this when we set the deffered value ex const deferred = useDeferredValue(input); and use this var means we re telling that it low priority than our input.. and computationally expense to do and we gon let it happen later..
+- and this is better than the debounce or throttling since its not gon force to wait for the 200ms gap b/w the keystrokes. instead if nothing's gon happen it will work right away.
+- source code and the course [here](https://courses.webdevsimplified.com/view/courses/react-hooks-simplified/1327246-custom-hooks/4121583-15-custom-hooks-1-5-usetoggle-usetimeout-usedebounce-useupdateeffect-usearray)
+
+### useImperativeHandle hook
+
+- we can just pass in the ref the prof of teh comp and then pass in tto the i/p attr ex - function CustInput({style, ...props}, ref) { return <input ref={ref} >
+- but what if we want to completely change how the ref works and we want our own cust ref.. (not the one related to the comp but the actual cust ref) .. that is where the useImperativeHandle comes in takes 3 props.. 1. ref 2. fn (which will return a single val and the return val is the new val for our ref..) 3. dep  array 
+- ex - fn CustInput({style, ...props}, ref) { useImperativeHandle(ref, () => { return { alert:() => alert("hi") }}, [props.value]) // now our ref is gon to the return obj (alertHi).. 
+- this hook we don't very often use em.. there is very specific use cases where we use it..
+
+### UseDebugValue hook
+
+- this makes the working with and writing the cust hooks lot easier..
+- with this hook we can write some thing essential next to our hook.. some thing to know whats going on inside our hook when we re debugging it..
+- **note:** this hook **only works** inside of the cust hooks. 
+- this hook takes in 2 params 1. the param of the fn and 2.the fn itself ex - useDebugValue(value, v => getValueSlowly(v)) // the value tis the param of the getValueSlowly(value) fn.. 
+- by using this fn version(as the 2nd arg) we re telling the react only run this hook if we re in dev and 2. if we ve the react dev tools installed and see what the result is.. otherwise don't run this at all .. when we ve slow code..
+
+### UseId hook
+
+- came in react 18..
+- as we know in our html the el must ve its own id .. if two or more el ve the same id then its a prob..
+- we can use the math.random() function to assign new id for each of the el ex - const id = Math.random() ..// <input id={id} > but this could be cumbersome.. 
+- that's where the useId comes instead of the Math rand we can use this hook .. ex const id = useId(); // now this id is gon to be unique for el and each time we render the comp.
+- the way this hook the el will get same id as every time the page renders .. this is really important when we re doing CSR and SSR..
+- on the other hand one of the prob with the math.rand is our server may render diff id and then our client may render diff id for the same el.. then the id mismatch..
+- and the ids are start with the colon : ex - ":r1:" and the thing is now we can select this id using the doc.querySelector(":r1:") // will throw the error..
+- instead we ve to use the ref ex - const ref = useRef(); // and use this in our el (attr - ref={ref})..  (the reason they re doing is in react we don't wanna use the doc.querySelector instead we wanna use the ref so they are forcing us to follow the good practise
+
+### UseEffectEvent Hook
+
+- this will makes working with the useEffect hook so much easier and dealing with the side effects much faster. 6months ago this hook was in experimental version..
+- this hook is still experimental phase so if we wanna use according to the doc we ve to import it like import {experimental_useEffectEvent as useEffectEvent} from 'react';
+- refer the react doc or kyle's blog for the code..
+- the idea behind this hook is essentially we click on the btn or emitting event (which is not tied to the react) 
+- in our case when the room connects we want to ve some kinda logging and we don't want our use effect to be affected by all the things in the events.. - bcoz its entirely different and its encapsulated in its own thing (in the useEffectEvent hook)
+- so now our useEffect hook doesn't ve to depend or rely on any of those data and it doesn't even need to know what it is
+
+- the main usage of this hook is  we wanna use the useEffect that only runs when certain dep changes.. and the other thing ex logging or something we wanna keep in the useEffectEvent hook .. ex our useEffect only ve to run when the url changes but it also need to access the other data such as logging..
+- refer the code [here](https://blog.webdevsimplified.com/)
+
+### UseHook (experimental version)
+- this hook ignores every single rules that the other hooks ve.. and it also makes the boiler plate code when dealing with the async code .. 
+- this hooks takes the promise ex - export default function Data({url}) { use(fetch(url).then(res => res.json());  } // this use is just like the await .. if it resolves it will give us the data back and if it fails it will give us the error.
+- and to handle the loading and the error state.. inside our app comp we can use the <Suspense fallback=<div>Loading..</div> ><Data url={url}> elem.. the fallback is gon to be rendered any time we re in the loading state.. this Suspense comp is all about doing  the async stuff..
+- when we re dealing with the error we need to use the **error Boundary** which is really common when using the suspense.. now we can wrap our suspense and the data comp with the <ErrorBoundary fallback={<div Loading...} </div> > comp
+
+- now this hook goes one step further .. we can pass the shouldFetch as the 2nd arg in our fn and we can make a condn statement saying only fetch the if the state is shouldFetch.. which is not possible in other hooks we can use the if / codn statement .. but with this use hook we can do 
+- ex - export default fn Data({url, shouldFethc}) { if(shouldFetch) {const data = use(fetch(url).then(res => res.json()) // this hook can be used in anywhere we want it can be wrapped in the for loop if statement..and conditional return .. pretty much anywhere we want.. 
+- and we can pass in the <Data url={url} shouldFetch/> 
+
+### React suspense and error boundaries..
+- from dave gray.. source code [here](https://github.com/gitdagray/react-suspense)
+- `npm react-error-boundary` .. <ErrorBoundary fallback={<p classname="error> error </p> <Suspense fallback/> <PostList/> 
+- from this package doc we can see the error boundary do not catch certain errors such as the 1. event handlers 2. async code 3. ssr 4. errors thrown in the error boundary itself..
+- - when using the suspense comp this comp shows the fallback whenever our comp returns/throws promise
+
+- this suspense comp is useful when using the motion div in our cust comps and the suspense will fallback into the loading state until our comps are ready.. 
+
+### useFormStatus (from react-dom)
+
+- this hook is also in the experimental version..
+- this is simplifies the form update loading state so easily (which is originally so annoying to deal with the form update loading state)
+- if we ve i/p el we basically enter the val and to submit or create (button) we basically set the state of the button setLoading to false and then keep track of the state and in the button el we disable it if its in loading state..
+- this useFormStatus hook has 4 states( or obj) 1. action 2. data 3. method 4. pending.. ex function SubmitButton(){ const data = useFormStatus(); const isLoading = data.pending; .. // and to make this pending status work we need to set the **action** to our form el ex - <form action={onSubmit} // and this fn looks like 
+- async function onSubmit(data: FormData) { const title = data.get("title"); } // lly for all the form i/p fields (like the title, age, email etc) .. 
+- now that we re using the action instead of the onSubmit attr we will get the form loading state.. and also we will get the other state as well.
+- the way the pending state works is as long as we re waiting for something .. or as long as the promise that is waiting to resolve .. that pending is set to be true.
+
+### useOptimistic Hook (for OptimisticUpdates)
+
+- in the experimental version
+- the idea behind this hook no matter how long it takes for our api to update..we make it so whatever the user does shows up immediately for em and then it rectifies if there is error or something..
+- but it will feel super responsive.. since everything we do will update immediately on our screen..this is how most of the social media works when we hit the like it will increment immediately and if there is error it will revert back after.
+- the way this hook works is very similar to the useSate hook.. ex - const [optimisticTodod, setOptimisticTodos] = useOptimistic(todos); 
+- the other use case is we can pass in the 2nd param as **reducer** and it will work exactly same as the useReducer.. ex const [optimistTodos, dispatch] = useOptimistic<OptimisticTodo[]>(todos, reducer); 
+- so in the ex - he whatever we type in the i/p field and hit the create todo button the text will appears immediately on the screen, (due to this hook) but once the real val is fetched out of the server it will replaced the old one with the fetched val..
+- since its mostly useful in the server side app, and this hook is meant to be used with the next js..
+
+--------------------------------------------------------------------
+
+# Elastic search 
+
+- refer the pip package elasticsearchquerygenerator
+- the elk search or elastic stack - **ELK** elastic search, logging, Kibana
+- he uses the netflix data set we can find in the kaggle. and in this ex - he is using kibana to run all the queries but we can also use postman and write all the queries  .. 
+- he uses the kibana server runs in the port 9200 and upload the doc in the server ..
 - 
+- `GET _cat/idices`  - will gives all the indices..
+- `GET learn/_search` - learn is the name of the index and search..
+- `GET learn/_doc/doc-id` to get the specific doc. with the id.
+- we can write some complex queries like `GET learn/_search { "source":['title'], "size: 10", }` and inside this obj we can define some other attr like the min_score query: which can be bool and set to some attr/props to must, filter, should, must_not etc...
+- the must - **and** operator, filter - is like the normal filter, should - **or** operator, **must_not** - not operator
+- in the size prop the max limit is 10k and if its more then we ve to use pagination. 
+- for the exact match in our search then we ve to use **match_phrase**
+- we can also write nested bool queries ex "query": {"bool": { "must": [], } and other 3 operators inside 
+- its nothing but we write query inside the query ex - must_not: [ { bool: { should:[{ match: {}]] .. and it goes like that 
+- so in the above ex inside the must_not we ve the should and looking for the matching title.. this is what the nested query is .. in nutshell the nested query is some thing like - ex - title is (A or B) NOT (C or D)
+- to ve the scroll option `GET learn/_search?scroll=1m` and in the next doc `POST /_search/scroll { scroll: 1m, scroll_id: "paste the scroll id"} 
+- but its better to avoid this scroll method.. with this scroll approach elastic search will store the cache and if its more poeple then all the results will be accumulated in the cache..
+
+- we can use his lib (pip/ py) to gen the queries.. which is easier than writing the more complex queries..
+- PUT my-first-index/doc/4 {"name": "any name"} // to create an doc..
+- **Aggregation** -  ex - helper.add_aggregation(aggregate_name="Duration", field="duration", type='terms, sort='desc', size=5)
+- to Delete the index - DELETE abc .. the name of the index .. 
+
+- **elastic search geo mapping** we can do the geo based mapping.. means we can do geo based queries ex search for the lat, long, dist (with in 2k or etc..)
+
+- **Alias** this will be useful for the db migration we can rename the old data and save it as new and delete the old one..
+  - and we can filter out the query (ex logs ) for the start date to end date and save it as alias (new data)..
+  - and we can use **routing** and we can use it for the shards operation and make it routing: 1 and then 2 for the next document.
+
+- the elastic search is **NoSql** db.. some of the use case of the ES is app search, web search, logging and log analytics, geo spatial data analysis and visualization, business analytics and much more..
+- raw data will flows into the ES from diff sources and then the data ingestion (process of data is parsed and normalized and enriched) b4 its indexed in ES
+## basic concepts of ES
+- cluster - for the rdb node is db instance there can be N nodes with the same cluster name.
+- - **Near Real time** Es is the NRT platform 
+- - **index** is a collection of docs that ve sim characteristics.
+- **node** is a single server that holds some data and participates on the cluster's indexing and querying.. and node is the one ES instance
+- **shards** is subset of the docs of an idx .. an idx can be divided into many shards
+- - **installation** for the installation refer the doc .. just extract the zip and run the bin/elastic search -- ./elasticsearch .. then the server will run on the local port 9200..
+  - lly for the kibana.. it will run on the port 5601.. and in the kibana dashboard in the **dev tool** we will run our curl commands all the above commands we ve seen so far.. 
+
+0 its a wierd the **put and post** are both used to post the doc .. (as opposed to update)..
+**REST APIs** there are 4 types of rest api in ES 1. index api(PUT/POST and it helps to add / update the json doc in an idx when the req is made to that  respective idx) 2. GET 3. DELETE 4. UPDATE api
+
+**LogStash** in the ELK stack the l stands for the logstash..
+    - the logstash is a tool based on the filter/pipes patterns for gathering, processing and gen the logs or event .. it helps in centralizing and making the real time analysis of logs and events from different sources..
+    - and it can collect the logs from diff sources like iot, social media, ecommerce, financial etc
+
+- it is a plugin based data collection and processing engine..
+- it can collect the data from different sources ,, can also handle http req and res data.. can handle all types of logging like apcahe logs, n/w protocols, event logs and many more.. and it provides variety of filters which helps the user to find more meaning in the data by parsing and transforming it.
+- **Event obj** - it uses this obj to store the i/p and add extra fields created during the filter stage. logStash offers event api to devs to manipulate the events.
+- **pipeline** the data flow stages in logstash from the i/p to the o/p.. the data entered in the pipeline is processed in the form of an event. then sends to o/p destn in the user or end s/m's desirable format.
+  - **i/p** logstash offers various plugins to get data from diff platforms.. some of the most commonly used plugins are file, syslog, redis and beats. 
+  - **Filter** middle layer of logstash where actual processing takes place..like we can do some regex pattern etc.
+  - **o/p** is the last stage of the logstash where the o/p events can be formatted structure required by the destination s/ms. it sends the o/p event after completing processing to the destn by plugins.. some of the most commonly used plugins are elastic search, file, graphite, statsd. etc..
+- **Advantages of logstash** offers regex pattern, supports variety of web servers and data sources for extracting logging data, provides multiple plugins to transform data..logstash is centralized and makes it easy to process and collect data from diff servers, uses http protocol enables user to upgrade elastic search versions.
+- indexing docs in bulk .. if we ve like 100 files we can use the bulk api to divide the files into batches and send em ..
+-  refer the doc for the (indexing docs in bulk)..
+- **bool** to construct more complex or nested queries we can use/ combine bool with the queries section..
+
+- **Relevance scores** by default ES sorts matching search results by relevance score.. which measures how well each doc matches the query.. the higher the score the more relevant the doc is..  
+- **query context** - a query clause answer the question how well does this doc match this query clause.. 
+- **Filter context** - a query clause answer the question does this doc match this query clause. and this context is mostly used for filtering the structured data
+
+- **compound queries** - this queries wrap other compound or leaf queries, eithe to combine their result and scores to change their behavior or to switch from the query to filter context. the queries in this group are 1. bool query 2. boosting query 3. constant score query 4. dis_match query. 5. function_score query.
+ 
+- **full text queries** - it enables us to analyzed text fields such as the body of the email. this qs is processed using the same analyzer that was applied to the field during indexing. 
+  - the queries in this group are 1. match query 2. intervals query 3. match bool prefix query 4. match phrase query 5. multi match query 6. common terms query 7. qs query
+- there is a framework called **elastic Search-py** in python .. its a low level client lib wiht more limited scope.. it also provides an optional persistence layer for working with docs as py objs in an ORM like fashion. `pip insatll elasticsearch`
+- **ES DSL** is a high level client aims to help with writing and running queries against ES. its build on top of official low level client ES.. (refer the doc ES DSL for more infos..)
+  - `pip install elasticsearch-dsl`
+
+- **ES Analyzer** - there are diff types of analyzers such as standard, simple, whitespace, stop, kw, pattern, language, and fingerprint analyzer.
+
+----------------------------------------------------------------
+# Advanced JS
+
+- **Scope** as we know there are 3 types of scopes 1. block scopes 2. fn scope 3. global scope
+- **Nested fn scope** -  in the ex he has 1 global var and 2 fns.. 1st  outer fn has var b and inner fn has var c ex - let a =10; fn outer(){ let b = 20; fn inner { let c = 30; console.log(a,b,c) } inner(); } outer(); // it will still prints the vars accordingly
+- - first c var is in its own scope and then it will look for b which is not so it will go one step up and found in the outer fn scope lly finds the a in the global scope 2 step up.. this is the ex of **lexical scoping** which describes the how js resolves the vars names and the fns are nested..
+- - the main take is that in the nested fn the var declared in the inner fn has access to their own scope and also to the outer or the global scope..
+
+- **Closures** acc to mdn the closure is the combination of a fn bundled together with the refs to its surrounding state. closures are created every time a fn is created, at fn creation time.
+- - with the same ex - fn outer() { let counter = 0; fn inner() { counter ++; console.log (counter); } inner() } outer(); outer(); // if we call this twice (outer fn ) the o/p is 1 and 1 since every time we invoke the fn new temp mem is allocated..and we ve new counter var is established with 0 
+- - in the same ex if we return the inner fn ex - fn outer() { let counter = 0; fn inner() { counter ++; console.log (counter); } return inner; } const fn = outer(); fn(); fn(); // by returning the inner fn .. we can assign the outer fn to the var called fn.. // now if we call the fn() twice the o/p is 1 and 2 .. by returning and assigning and then invoking the fn.. 
+- - this is bcoz of the closure .. in js when we re **returning the fn** from the another fn we re effectively returning the val of the fn defining along with the fn's scope.. this'd let the fn defn ve an associated persistent mem, which could hold on to live data b/w the execs. that combination of the fn and its scope chain is what is called a closure in the js.
+- - means when returning the fn the js also return the fns scope.. and in such situation the val will be persisted in the mem (in our case its 1), and ie y for the 1st fn invoke call its 1 and then 2 for the next fn call.
+- - and the key point is with the closures the inner fn has access to the var of the outer fn even after the outer fn has finish the execution.
+
+**Fn Currying** - currying is a process in functional programming in which we transform a fn with the multiple args into a seq of nesting fns that take one arg at a time... the currying doesn't calls the fns it simply transforms it
+ex- fn f(a,b,c) is transformed into f(a)(b)(c) ..
+ex - fn sum(a,b,c) { return a + b; } console.log(sum(1,2,3))// and lets transform this to sum(2)(3)(4) and the way we do that is by **nesting fns** where each fn takes one arg at a time .. lets see an ex
+`fn curry(fn) { 
+`   return fn(a){
+        return fn(b) { 
+            return fn(c) {
+                return fn(a,b,c) }}}}
+const curriedSum = curry(sum); console.log(curriedSum(2)(3)(4)); and the o/p is 10;`
+
+- the currying is used to compose the reusable fns for ex we can create fns like log info, log header etc.. where one or more args are set and we get to set choose the remaining args .. currying makess the composing new fn very easy..
+
+**this** kw 
+- the js this kw is used in a fn, refers to the obj it belongs to ..it makes the fns reusable by letting us decide the obj val.. this val is determined by entirely by ho a fn is called .
+- there are 4 ways to invoke a fn and determine the val of **this** kw.. 1. implicit 2. explicit 3. new 4. default binding .. are the 4 types of bindings.
+- 1. implicit binding- denotes that when the fn is invoked with dot notation the obj to the left of the dot is wat this kw is referencing ex - person.sayMyName() // the left side of the dot is person which is "this" or its equivalent to this.sayMyName()
+2. explicit binding- denotes that when the .. in js every fn has a built in method called **call** which allows the context in which the fn is invoked.. ex - sayMyName.call(person) .. and inside the fn sayMyName() { console.log(${this.name}) // this is referring person obj.. and this is explicit binding
+3. new binding .. in js we can invoke the fn with new kw and in such scenario the fn with this kw is referencing an empty obj..ex -fn person(nmae) { this.name = name } // now we can initiate the fn with diff args ex const p1 = new Person('naresh') // this fn is known as ctor fn..here the this = {} // empty obj..
+4. fallback binding - if none of the other 3 rules isn't matched.. ex - sayMyName(); if none of this rule is matched js will default to the global scope and set this kw to the global obj..in the global scope it will find this.name since it is not there and it will be "undefined". . and to set the global scope "globalThis.name ='kumar"; so the 4th binding is the global scope..
+
+**order of precedence** - when multiple rules is applied to figure out the this kw then the order of precedence is New, explicit, implicit and default binding..
+
+### Prototype
+
+- ex - fn Person(fName. lName) { this.fistName = fName; this.lastName = lName; } const p1 = new Person ('clark', 'kent'); p1.getFullName = fn() { return this.firstname + "" + this.lastname } console.log(p1. getFullName()).. if we try to assign the var p2 and init new person obj and console log it will throw error since the we rer calling p1.getFullName() and if we want to make the generic fn.. the fn to assign on every instance..
+- and this is where **prototype** comes in.. in js every fn has the prop called  prototype that point to an obj.. we can make use of the prototype to determine all or sharable prop..
+- ex - Person.prototype.getFullName = fn() {} // now this fn is generic and can be used by any instance to call this fn. .. the important use case of this prototype is  **inheritance** .. and it is called prototyphal inheritance.
+- ex from the above ex .. plus lest ve a fn ex - fn superhero(fName, lName) { Person.call(this, fName, lName); this.superHero = true; } superHero.prototype.fightCrime = fn() { console.log("fighting crime") } // to inherit the fullName(); we can use the obj.create which will delegate on another obj in field look ups..ex - SuperHero.prototype = Object.create(Person.prototype) // this Person.prototype has the fullName() and js will exec.. this is how the method will inherited from the prototype.. hence the name prototyphil method..
+- and lastly Superhero.prototype.constructor = SuperHero; // otherwise js will thinks the SuperHero was created from the Person.. which is incorrect
+
+- **class kw** introduced in 2015.. 
+- in js the classes are primarily syntactical sugar for the existing "prototyphal inheritance".. 
+- ex lets rewrite the above ex - class Person { constructor(fName, lName) { this.firstName = fName; this.lastName = lName; }// then all the fn with in the prototype obj are re written as fn with in the class ex - sayMyName() { this.fistName + this.LastName = this.; }} const cp1= new Person('jon', 'doe') console.log('cp1.sayMyName());
+- now there are 2 kws are take care of the entire inheritance **1. extends**, **2. super**  ex - class SuperHero extends Person { constructor(fName, lName) { super(fName, lName) } // this super will call the person class's ctor .. which is the parent..
+
+### iterables and iterators
+
+- if we wanna loop over the str then we use the for loop and the str.length to loop over the str and lly if its array then arr.length.. to loop over .. but there are couple of difficulties in this approach .. 
+  - 1. difficult in accessing the elem 2. difficult to manage the iteration on the data for various types of data structures .. 
+- there is need to iterate over various ds in a new way that abstract away the complexity of accessing elems one by one and was at the same time uniform across diff ds. makes our code more readable and less confusing
+- iterable and iterator allow us to access data in a collection one at a time that makes us what to do with the data rather than how to access the data .
+- some of the ds are implemented this 2 protocols (iteators and iterables) by default... they are str, arr, set, map..now they ve new **for of loop** ex const str = 'naresh'; for(const char of str) { conole.log(char) } lly for the array .. for(const item of arr) { console.log(item) } 
+- the obj which impls the iterable protocol is called an iterable.. 
+- and for an obj to be an iterable it must impls a method at the key[symbol.iterator].. that method should not accepts any arg and should return an obj which conforms to the iterator protocol.. the iterator protocol decides whether an obj is an iterator..
+- if an obj is an iterator then it must satisfy the following rule .. the obj must ve  **next()** that returns an obj with 2 props. **value** which is the current elem and second **done** which is bool val indicating whether or not there are any more elems that could be iterated upon..
+- ex - with an empty obj and make it iterable.. to impl the obj must ve the  [symbol.iterator] as a key..
+  - ex - `const obj = { [Symbol.iterator]: fn() {
+              let step = 0;
+              const iterator = { 
+              next: fn() {
+                step++;
+                if (step ===1) {
+                    return {value = "hello", done: false}
+                } else if (step === 2){
+    return {value = "world", done: false}
+    }
+   return {value = undefined, done: true}
+    }, }
+    return iterator
+  },} 
+  for (const word of obj) { console.log(word) } `
+    
+
+- this similar approach is what js is impl for the str, arr, set and map.. 
+
+### Generators
+
+- Generators are the special class of fns that simplifies the task of writing iterators. 
+- we write the generator with the syntax "*" asterisk.. ex - function* generatorFunction() {}..
+- in comparison with the normal fn.. the normal fn won't stop the execution unless it returns something or throws an error.. which in contrast with the generator fn which **can stops** in the midway and then continue execution from where it stops..
+- or in other words the generator functions can stop the execution. to achieve this behavior it uses the **yield kw** and yield is an operator where the generator can pause itself.. everytime the generator encounters yields it yields the val after yield ..
+- ex - function* generatorFunction() { yield 'hello'; yield 'world'; } // const generatorObj = generatorFunction(); // when we invoke the fn unlike the normal fn the gen fn returns the generator Object.. and the generator obj is an iterator..since its an iterator it can be used in **for of** loop
+- ex - for(const word of generatorObject) { console.log(word) } 
+- now we ve achieve the same iterator behavior with the less code with the help of generator fns.
+
+## Async Js
+
+- to achieve the async in js we need new pieces from outside of the js which is where the web browsers comes into play..and this browsers define fns and apis that allow us to register fns that should not be executed synchronously and should be instead invoked asynchronously when some kind of event occurs.
+
+### TimeOuts nd Intervals
+
+- **setTimeOut()** ex setTimeOut(fn, duration, param1, param2, ..) // and to clear the set time our .. we can use clearTimeOut() passing in the identifier returned by the setTimeOut as a param.. ex - const timeOUtId = setTimeOut(greet, 1000, 'naresh'); clearTimeOut(timeOutId); .. and more practical scenario is clearing the timeOuts when the comp is unmounted to free up the resources..
+- **setInterval()** to run the code repeatedly with the regular interval of time.. the fn signature remains same as the setTimeOut() .. and to clear the interval **clearInterval()**.. 
+- this fns are not part of the js.. these are browser fns .. implemented by the browser.. 
+- it is possible to achieve the same effect as the setInterval() with a recursive setTimeOut() ex setTimeOut(fn, run()) { console.log('hello'); setTimeOut(run, 100)}, 100) // the run() will calling itself every 100ms..
+
+### Callbacks
+
+- as we know in js the fns are the first class objs..
+- any fn that is passed in as the **arg** to another fn is called cb fn in js...and the fn which accepts the fn as an arg or returns a fn is called **higher order fn**..
+- why is cb ? there are 2 types of cb fns synchronous cb fn 2. Async Cb.. the cb fns which execs immediately is called synch cb fn..
+- an async cb is a cb that is often used to continue or resume code exec after an async operation has completed..
+- the problem with the cb is if we ve multiple cb fns where each level depends on the result obtained from the prev level the nesting fns becomes so deep and the code become difficult to read and maintain.. this is called **Callback hell** ..to tackle this prob the promises were introduce in es6
+
+### Promises
+
+- to overcome the cb hell.. as we know the promise ve resolve and reject // when the promise is fulfilled its in resolve state else in rejected state..or the **return** value is fulfilled then the promise is resolved or else the promise is said to be rejected.. and finally the **success cb** will exec if the promise resolves successfully..
+- and if the promise is rejected then the **failure cb** will exec.
+- according to the mdn the promise is a **proxy for the value**
+- in simpler term the promise is an **obj** in js .. and the promise is always in one of these 3 states .. 1. **pending** or initial state..2. fulfilled 3. rejected (in op failed)..
+- promises helps us to deal with the asynchronous code in a far more simpler way.. compared to the cb..
+- these resolve and reject both are the **fns** which are called changes when the status of the promise is either fulfilled or rejected.. thru this fns only we can update the status of the promise.. we can't directly mutate the state of the promise..
+- the **2 callback** fns (that occurs in case of success or failure) are **.then**  and **catch** these cb fns we can call on the promise instance..
+- we can create a promise obj by ex - const promise = new Promise((resolve, reject) => { setTimeOut(()=> { resolve('bringing food')}, 1000)});// and we can pass in cbs... promise.then(onFulfillment) // inside this cb pass in the fn as arg.
+- note: this .then() can be able to accept both the success and error fns as args .. ex - promise.then(onFulfillment, onRejection) ..// but it is not recommended way tho..better to use the catch for the rejection.
+- then we can use **chaining promises** ex - we can use the .then and catch() in the same line(can be chained) .. ex promise.then(onFulfillment).catch(onRejection);// and this chaining can be done as many times as we want to and this can **solves the cb hell**
+- **static methods** in promise 1. **promise.all()** query multiple apis and perform some actions but only after all the apis ve finished loading.. {refer the mdn doc ex }.
+- the promise.all() method takes an iterable of promises as an i/p and returns a single promise that resolves to an array of results of the i/p promises.
+- the returned promise will resolve when all of the i/p's promises ve resolved, or if the i/p iterable contains no promises.
+- however it rejects immediately if any of the i/p promises rejects or the non promises throws an error and will reject with the first rejection message/error..
+2. Promise.allSettled() .. it waits for all i/p promises to complete regardless of whether or not one of em is rejected.. 
+3. Promise.race() method returns a promise that fulfills or rejects as soon as one of the i/p promises fulfills or rejects, with the val or reason from the promise.
+
+### async await
+
+- there is still a way to improve it further and ie by async await introduces in ES8 (es2017).. 
+- the async kw is used to declare the async fns.. the async fns are the fns that are instances of the async fn ctor..
+- unlike the normal fn the async fn always return a promise .. ex of async fn .. async fn greet() { return 'hello' } greet(); in the console o/p we can see the promise fulfilled and the str hello..
+- the above fn is just same as writing like async fn greet() { return Promise.resolve('hello') } greet(); 
+
+- **await** the await kw can be put infront of any async promise based fn to pause our code until that promise settles and returns its result... in simple terms the await operator makes the js wait until the promise settles and returns the result.
+
+- **Sequential vs concurrent vs parallel execution**  lets ve the ex fn hello returns str hello and set time out 2 sec and lly world fn set time out 1 sec if we exec this fns sequentially then the total time takes is 3 sec since it has to wait the firs fn to finish.. then in the concurrency exec this takes only 2 sec to finish ex console.log(await hello) lly for the world fn since we re using the await this is concurrent exec...
+- then the parallel execution .. ex - fn parallel() { Promise.all([(async () => console.log(await hello()))(),]) parallel(); // inside the array lly for the world fn.. and in this case wat ever result will be resolved first and the time taken overall is 2 sec.
+
+### Event Loop
+
+- as we know the js RTE consist of an JS engine which has the **memory heap** and **call Stack** .. whenever we declare a var or fn the mem is allocated in the heap .. and whenever the fn is exec the code is moved to the callStack .. and when the fn exec is completed then the code will be removed from the callstack.. **Last in First out** implementation of the ds.
+- the popular ex of the js engine is chrome's **V8** engine.. 
+- then the second part is the **web Api** the browser's part for ex timeout, promise, req, dom etc .. this apis are not implemented by the js this apis are browsers that js has access to..
+- and the third part is **callback queue or task queue** this queue is FIFO DS..
+- and the Fourth part is the **Event Loop** has only one task .. it checks if the call stack is empty if it is then it will push the item from the cb/task queue into the call stack. 
+- ex - console.log('first') // lly we ve two more console.log for the second and third .. first in the callstack **global()** the thread of exec always starts in the global scope .. then the first console log will be added and exec and pop out then the other 2 as well .. if no more fn to exec then the global() will be pop out of the call stack.
+- as we know the setTimeOut() are the web Api fns .. so even if we use em in our js code this fns will be added to the call stack then js will handed this fn to the web apis (and js will simple pops out the time out fn since from call stack) ex - our timeout fn is 2 sec then after 2 sec the fn finishes then the web api will push the cb to the cb queue (since it can't directly pushes to the call stack or no access) .. now the Event Loop will take care of the callbacks in the task queue.. it will check if the call stack is empty or not if its empty then it will push the cb (timeout) to the call stack..
+- now what happens when the timeout duration is 0 ms.. it doesn't make any change the exec flow will be like the prev ex .. the cb has to wait for its turn to get the call stack empty.. since the set time out duration is the **min delay** not the guaranteed delay..
+
+- now lets ve a scenario with the asyc promise code .. here comes 2 more components in the picture the "heap memory" and the **micro task queue** ex - console.log('first'); const promise = fetch('www.udemy.com'); promise.then(value => { console.log  ('promise val is, value) }); console.log('second') // here the fetch is also the web api.. but it is promise .. so unlike set time out fetch live behind js obj in heap's memory.. once the fetch(url) retrieves the data which are courses .. the web api will set that as the promise val to the mem(in js) when the promise val is updated the js will automatically execute all the fn listed in the fulfillment array (in heap).. now this fulfillment fn needs to be executed in the call stack (since the js can't directly push the cb on to the stack) instead the cb fn will be passed into the micro task queue along with the promise value..
+- again the event loop will checks if the call stack is empty if it is then it will push the cb + value into the callstack 
+
+- why do we ve task queues ? and micro task queues ? to understand this lets take the prev ex code along with the while loop while( let i = 0; i < 10000000; i++) {} this block of code is simply there for the thread blocking maybe takes like 3 secs. and in this ex we also ve the set time out fn now the set time out cb will finishes the exec in web api and moves into the task queue and the lly the fetch(url) will moves into the micro task queue along with the value (cb + val) in the mean while the call stack is still executing the while loop.. once there is no more code to run in the call stack (emptied) .. now which one will be pushed to the call stack
+- the js will give priority to the **micro task queue** over the task queue .. so in our ex the fetch() (cb + val) will push into the stack then again if its pop out and the call stack is empty then finally the task queue will be pushed ..
+
+# Bun Js
+
+- written in zig..
+- alternative RTE for node.. besides that it also includes bundler for the frontend, testing tool kit, built in sql lite, HMR support, built in FS, websocket (no need to import ).. its like all in one toolkit..
+- includes native bundler, transpiler, task runner and npm client ..fully compatible with node Apis..
+- instead of v8 engine, it is actual built on top of **JS core engine** which is the performance minded js engine built for "Safari"..
+
+3 major Design Goals 
+
+1. Speed - faster than node and deno, extends the js core engine, little deps..
+2. Elegant Api - minimal set of highly optimized APis for performing common tasks.
+3. Cohesive DX - complete toolkit for both server side and front end.
+
+**Features and Advantages**
+    - speed and performance, Ts out of the box, Drop in node compatibility, JSX, works with "node_modules",  watch mode (HMR), Native NPM client (we can install all the npm package but with bun command which is like **30 times faster than npm**)
+        Environment vars support (no need dotenv or other package to read env files), No module madness, integrated bundler (this is huge bcoz bun has the built in bundler which is faster than webpacks, parcel and many others, it will bundle our source file and bundle em together into a single file that runs on the browser) , Web standard Apis, built in Sql lite..
+- it also supports express, koa, and "alicia js" (may be experimental phase) which is supposed to be 20x faster than express js and its built to be used with bun..
+- `npm i -g bun` (already installed) .. to init the project `bun init`
+- lly to node to run the file (node index.ts) -- `bun run index.ts`
+
+- to create a very simple web server - const server = Bun.serve({ port: 5000, fetch(req) { return new Response('Hello world')}, }) console.log('listening on port ${server.port}') // this is very few lines of code and our web browser .. which is comparable to using http module in node js.. 
+  - to make run our server in the watch mode `bun --watch index.ts` .. and if we re working with the front end then for the hot reload `bun hot index.ts` 
+- to read the env files there are 2 ways 1. process.env.PORT (to read the port num) 2. **Bun.env.PORT**
+
+- **bunx** which is similar to **npx** which will allow us to run a package w/o installing it. ex `bunx cowsay Hello Bun` .. so if we wanna use something like npx create react app , which can be replaced with bunx create react app
+- we can use the import syntax (es6 syntax) and the node syntax - require syntax in the same file...
+- we can use the "path", "fs" .. but instead of fs there is new optimized api (file I/O api) - ex - const data = ' i love js'; await Bun.write('output.txt', data); // its that simple 2 lines of code .. and to read file .. ex - const file = await Bun.file('output.txt'); console.log(await file.text()); // lly we can use other fns in the console.log such as file.size, await file.stream(), await file.arrayBuffer()
+
+**Test** - supports integrated testing no need additional package ex "index.test.ts" (file name should include test).. this test is very similar to what we do with jest .. ex import { describe, expect, test, beforeAll } from 'bun:test' .. to run the test `bun test`
+
+- **Bundler** - to bundle our file `bun build ./src/index.ts --outfile=./dist/bundle.js` and lly we can add "--watch" at the end to enable the watch mode
+
+- **React and JSX** lets see how we can actually transpile into jsx `bun install react react-dom
+-
+### build a todo app with bun
+
+- Bunx & Htmx .. 
+- `bun create next ./app` to create a next js app.
+- to build and compile `bun build ./cli.ts --outfile mycli --compile` .. will create an bin file and we can exec by `./mycli`
+- we can make the https server by providing the tls prop to the server ex tls : { key: Bun.file('./key.pem'), cert: Bun.file('./cert.pem') }..
+- **websocket** we can create a websocket very similar to http server.. ex - Bun.serve ({ fetch(req, server){ if(server.upgrade(req) { return; } return new Response(""") ); websocket: { open(){ console.log('msg received')}, message(ws, message){ console.log('messge'); ws.sendText('hello from bun ws')}}});
+
+- **File ops** -  to read the file ex - const file = Bun.file('package.json'); const contents = async file.json(); console.log(content) .. lly to write the file ex - if(content.scripts) { contents.scripts.start = "bun run src/files.ts"; Bun.write('package.json JSON.stringify(contents, null, 2));
+  - we can also use stdout in the file op e Bun.write(Bun.stdout, "some content to stdout"); // can see  the msg in the console
+- **import.meta** we can get the meta data about file, path dir, main, url objs and we can destruct and console.log those objs ex const { file, path, url, dir, main } = import.meta; console.log ({ file, path, url, dir, main});
+- **sql lite** we can use it like import { Database } from 'bun.sqlite'; const db = new Database("db.sqlite");//will create a file called "db.sqlite" const query = db.query('say hello'); const result = query.get(); console.log(result); ..
+
+- **file s/m router** - to create a one - const router = new Bun.FileSystemRouter({style: 'nextjs', dir: './pages'}); const theMatch = router.match('/'); console.log(theMatch);
+- **Testing** we can make use of the node compatible packages ex import { readFileSync } from 'node:fs';
+  - ` for the testing we ve already seen ex - import { expect, test } from "bun:test"; test("1 + 1", () => { expect(1 + 1).toBe(2); }) // is  a simple test ..
+- **Bunx and Htmx** todo app.. check out the **Elysia js** which claimed to be 20x faster than express and its a bun web framework.
+  - the repo for this app is [here](https://github.com/Eckhardt-D/bun-htmx-example) .. but its just a post method only.. just for creating the todos there is no update,, or delete .. very simple app.
+- we can also use the add cmd like yarn in bun ex `bun add -D react react-dom @types/react @types/react-dom`
+
+# JS functions (fcc)
+
+- that's great starts with concept >>> syntax // concept is much much gt syntax ..good author impression..
+- **Default param** - we can use the default val as the safe guard in case if we or any one misses to pass the any of the args .. ex fn calc (a=2, b=4){} ..
+- **Rest params** - this rest params will allows the fns to accept any no.of args as array..infinite no.of args ex fn calc(x, ...y){} // some important things to keep in mind. the fn must ve **only one rest param** and it must be the last param in the fn.. as the name suggest rest (means rest of it or whatever left over) 
+     ex - fn calc(x, ...y){ console.log(x); console.log(y);} calc(1,2,3,4,5,6,7,8,9); // here in the o/p one the 1 - belongs to the x and the rest of the vals are the y (rest param) from 2 to 9 in an array..
+**Higher Order fn** - as we know the HoF are the fn that takes one or more fn as an arg and return the fn as the val .. 
+  - ex - fn calcVal(calc) { calc(); } // is an HoF
+- all the **array related** that we ve been using are the HoF ex map, filter, reduce, slice .. 
+
+- **Pure fn** - in js the pure fn is a fn that produces same o/p for the same i/p.. ex - fn sayGreet(name) { return 'hello${name}'; } ; sayGreet('naresh') // whatever the i/p we pass in as the arg we will get the same o/p..
+- there is also the concept called impure fn which is quite opposite to the pure fn .. the fn will not produce the same o/p for the given i/p..
+- the side effects are the vars that are outside the scope of the fn.. that fn will not ve any control over the var and any one can change the var which cause the side effect.
+
+- **IIFE** Immediately Invoked Fn Expression.. means the code inside the fn gets exec immediately after its been defined..
+- to do that we don't ve to give the fn a name ex (fn () {console.log('IIFE') })() ..// note this nameless fn can run only inside the parenthesis .. and that fn is the str representation of the f () {}..
+- this iife exists bcoz b4 es6 where we use the var for the global var which gets polluted and we ve to use the iffe to protect em..another use case is if we re using the fn name and (that exists in the global context) and there are chances that somebody can use the same name for the var and the chance of getting it polluted .. so for that not be happened the iffe can be used.
+
+**Recursion** - the fn that calls itself until the max call stack size exceeded.. ex fn foo() { console.log('foo'); foo(); }//
+as we know when using the recursion we need to ve the **base Condition** means under which condition we ve to stop the recursion ex - fn recursion() { if(base_condition) //do something; return; } recurse() } .
+- another ex fn fetchWater(count) { if(count === 0) { console.log ('no more water'); return; } console.log ('fetching water...'); fetchWater(count -1); } fetchWater(5); //  now the recursion will stop exec when the base condn meets (after 5 iteration)
+- - we can also achieve this same thing with the for loop .. so there are few scenarios where we might wanna use the recursion ex **factorial** where recursion makes our code more readable..
+  - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
