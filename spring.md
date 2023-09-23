@@ -248,7 +248,13 @@
 - the jboss EAP architecture looks like the base is the OS (our os), then the JVm will run on top, then the manament/security/logging/Txs will run. after that the EAp services such as web REst, EJB container, jpa, batches, web containers, remoting iiop(Internet inter ORB protocol), jca container(java connector arch, std arch for j2ee, to erp s/m), msg provider(apache active mq)..etc.
 - once we install the Jboss eap then cd EAP4 dir, cd bin, then run the standalone.bat file.. which will start up the eap.(loads all the modules)
 - security realm - has management realm and app realm.. the app users will ve roles.. where as the management users will ve group
-
+  - **Standalone Mode** if there is only one eap installed on the host then the server will be running in the standalone mode.. and this mode has **4 profiles** (we can use/ run).. 1. standalone-full 2. standalone- full-ha  3. standalone- ha 4.standalone LB
+  - to create a user go to bin dir /add-user run this file and add the new user
+  - **Domain mode** in the domain mode we will ve the **Domain controller** then the **Host Controllers** and the **Server Groups**.. the domain controller will control the host controllers, the host controllers will control the server groups.
+    - if we run the domain.bat file the eap will run in the domain mode.
+- **Redhat dev studio** is a desktop application we can install and  this one has lot of options  we can use for the jboss, j2ee projects (eclipse built in), web browser, and many more..
+- 
+- 
 
 
  

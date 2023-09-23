@@ -429,6 +429,8 @@ to make an observable from the click() event, ex const clicks = Rx.Observable.fr
   - ex - const json = {"a": "aa", "b": "bb"}; const apiCall = Rx.Observable.Of(json);
     apiCall.map(json => JSON.Parse(json)).subscribe(obj => {print(obj.a));});
 
+- **Rxjs filter** most of the time we use the filter function along with the map().. the key thing is the map and filter is they operate on the stream emission not the **value of the stream emission** ex - map(x => x.map(n => n * 1000)) // not the first map is the observable operator and the second is the normal js map operator.
+
   **Do** .do()
 
   - will allow us to exec the code with the underlying observable,
@@ -466,7 +468,7 @@ to make an observable from the click() event, ex const clicks = Rx.Observable.fr
 - **Subject()** is an observable with few extra bonus features. it has the ability to emmit new data to the subscribers by acting as the proxy to some other data source.. and it has the next()
 - we can think of sub as the hot observable but new vals push to it
 
-- ex - we can create a sub and add the subscribers nd calls .next() which is not possible in normal observable.k
+- ex - we can create a sub and add the subscribers nd calls .next() which is not possible in normal observables
 - the main benefit of subject is to broadcast new vals to the subscribers w/o relying on the source data.
 
 - **Behavior subject** is similar to the subject except that it has the concept of current val. sim to sharedReplay() the last emitted value will be cached. and every subscriber will get the val. this is powerful when doing things like state management and the frontend app.
@@ -481,6 +483,28 @@ to make an observable from the click() event, ex const clicks = Rx.Observable.fr
 - **memory Leaks**
   - there are 2 ways to prevent the mem leaks in RxJs.
   - 1. unsubscribe() the subscription. 2. takeWhil()e (the recommended way) - with this way it will only emit when the certain condn is true and we don't ve to unsubscribe with this ..
+
+- the General idea of the stream is, if we want to keep our code reactively then we ve to keep our vals in the stream until we actually want to use or display em.
+- RxJs has currently like **100 operators** or more,  refer the doc..
+- **tap operator** - doesn't ve any impact to the stream, we can add or remove the tap and the result stream will be the same. which will allow us to observe vals at the stream which is good for the debugging, or **cerateing a side effect** we can observe the stream and tirgger some other code w/o affecting the stream itself.
+  - ex - in a route guard .. if the user is not allowed to nav the page we want em to nav somewhere else, we can use the tap and trigger a side effect to nav them somewhere.. ex - tap(canActivate) =>  { if(!canActivate){ this.navCtrl.navigateForward('/'); } } // we trgger a side effect that navigates to home.
+  - and another ex in the photos stream, every time we get the photos from the stream we set the tap operator and trigger the side effect to store the photos in the local storage.
+  - and another use case is when use the **NgRx** store in the client stream we can use the tap to trigger the side effect to add the val of the client to the **state** .. clients: client[];
+
+- **Combining the streams together** as we already know the "switch map" and the "concat map".. the swithc map allow us to switch from one stream to another stream. (switching b/w the stream a and stream B ), this is where the map part comes in, ex we don't want to switch the stream, we just want to take the val of the first stream and then map em into the second stream.. ex - lets grab the param id from the route and use it to get some specific record
+- but if we use the switch map in the scenario ex http req where the new req comes after it switched to the seconde stream, the switch map will cancel the inner stream and then use the new val emmitted from the outer stream and starts the process again.. another ex (user search)
+- **concat Map** but the concat map on the other hand it will wait for all the req from the outer stream, or it will wait for the each inner subscription to finish b4 move on the next stream emission. so its essentially creating an orderly queue..
+- **mergeMap** is another operator similar to these 2 maps, its not so commonly used one, its like the concat map only the order doesn't matter. it will complete all inner observables wait for em to finish..
+- so if the order doesn't matter and everything we want to done as quick as possible then we can use mergeMap()
+
+- **combineLatest** this operator we can use in the view models for the template. this is the creator operator, not the piped like other, it is used to create a new stream from the scratch.. it will take the last emission from it i/p stream and gon emit em all together.
+- importantly the combineLatest will wait until i/p streams ve emitted at least one val, 
+
+- **debounceTime** - just like the debounce lib for the to track the uer i/p in the form, this operator works similar to that, if we set the debounce time of 10ms then it will wait 10ms b/w each emission.
+- **distinct Until Changed** - it will basically emit the val only if it has changed ..
+- **startWith** operator is usually convenient when working with the val changes stream from the reactive forms. bcoz the val changes will only be emitted when actually user types something in the field
+
+- **catchError** oerator
   ----------------------------------------------------------------
 ### Angular FCC
 
