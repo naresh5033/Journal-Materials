@@ -877,6 +877,97 @@ as we know when using the recursion we need to ve the **base Condition** means u
 
 ----------------------------------------------------------------
 
+# Microservices Node Js (udemy)
+
+### Authentication
+
+- one thing to keep in mind is that handling authentication in the microservices is unsolved issue. There are many ways to do it but not an one right way.
+- we can go thru couple of solutions that works but still has a downsides in it.
+- 1. fundamental option - where the individual service rely on the Auth service (sending a sync/ direct req) and the auth service has the logic to inspect the JWT or Cookies to decide if the user is authenticated in or not.
+  - and the downside here is that sync service if the auth goes down then its a problem.
+- fundamental option 1.1 - here the individual service rely on the auth service as a gateway.
+- 2. option 2 is each individual service knows how to authenticate the user ..
+   - and the down here is we will end up duplicating the authentication in each service.
+   - and the other downside is if a existing user is banned in our app still he can be able to access the service (since he has the valid Jwt, cookie etc).
+- regardless of these downsides in the option 2 he still chose to go with this approach with some tweaks.
+- and that tweak is whatever is there JWt or cookie etc give em validity of time interval or expiration time (15 mins), aka some expiration mechanism
+- now this token refresh logic is gon to be handle by our auth service, although our individual services will hold the logic to verify the token if it expires then the client will send a direct req to the auth service.
+- and in the auth service user management logic if there is a banned user it will emit the event for that and in our event bus will listen for that event and we can persist/cache in the mem) this event in the service only for like 15 mins or same duration of time as the Jwt.
+- **Cookie vs JWT** as we know the res header has set-cookie method and we set the cookie(of some string) will stored inside the browser and now the browser send the follow up reqs with the same domain and same port and the browser will append its req's header the cookie info (any arbitrary piece of info we want to store)
+  - and the jwt is where we will take that piece of arbitrary information from the cookie as a payload and use the jwt creation algorithm that will spit out the jwt (encrypted format) and we can throw that into some decryption algorithm and access that arbitrary string
+    - cookies                       |               JWT         |
+    --------------------------------|--------------------------------
+    - are transport mechanism       |    - are authentication mechanism
+    - moves any kind of data b/w    |    - stores any data we want 
+        browser and server          | 
+    - automatically managed by svr  |    - we ve to manage manually
+    --------------------------------|--------------------------------
+- now to store the info we can go with couple of approach ex - 1. we can save the info about the user (implies the auth mechanism tells us about the info about the person) 
+  - the auth mechanism must be handle auth info.. must ve some built in tamper resist way to expire or invalidate itself.. 
+- and implies auth mechanism should be understood to diff services(written in diff langs) and implies auth mechanism shouldn't require some kind of backing data to store on the server.
+- and these all leads to JWT and all the above mentioned things can be implemented by the JWT.
+
+- issue with the SSR and JWT .. with the SSR we need to know the auth info in the very firs req from the client. (before rendering the app/ html to the client) but the big prob here is during the 1st req we can't customize or run our js on the client.  means we can't intercept the initial req and try to append the auth header in the req.
+- now this initial req can be only possibly store in the cookie. which is the only possible way for us to communicate from the backend to our server during the initial page loads (and we can do it with service workers).. so we gon be store the **JWT inside the Cookie**.
+
+- **Cookie and Encryption** lets install the cookie session manager `npm i cookie-session @types/cookie-session` this cookie session will allow us to store bunch of info in the cookie itself. and here we re not gon to encrypt the cookie coz cookie session lib uses diff encryption algo which can't be understand by many langs (that our services running on.since JWT are naturally tamper resist).
+- **Generate JWT** lets gen the JWT and store it in the cookie (session obj) `npm i jsonwebtoken @types/jsonwebtoken` .. now in the cookie session we can see the cookie obj contains jwt we can copy that and go to base64 encoder and encode it to get the jwt obj.
+- and grab that obj go to jwt .io and with our sign in key (in our code) we can verify the token and if it is verified then our jwt is valid token. but the payload we can see even w/o the verify key.(ex 'asdf')
+- now all our other services gon to need that sign key to verify the jwt. so we need to securely encrypt the sign in key and store it and share with all the services. and for this we can make use of the k8s **Secret service** to store our sign in key (encrypted ). And now this secrets are gon to be exposed to our services as env vars.
+- to create the secret in k8s `kubectl create secret generic jwt-secret --from-literal=JWT_KEY=asdf` (in k8s we can create diff kind of secrets but here we re creating generic type / all purpose secrets).  since we re not using the config file to create the secrets so every time we create new cluster we gon remember all the diff secrets we ve created.
+- and to get all list of secrets `kubectl get secrets` and in our container deply config file we can save this secret under the env prop. note: if there is any error in the env prop of our secret key then the pod will not create / spin up.
+- { note: in the res from the server, to exclude the p/w field he just used diff approach - in the user model under the (mongoose schema) add the toJSON() as a prop and inside ex - toJSON: { transform(doc, ret) { delete ret.password; ret.id = ret._id; delete ret._id; }} // this transform( takes doc and the return val).. and lly we can use this approach to modify our fields(key) as well ex in the id (user Id) field the mongoose by default save the user id as __id (instead of id) we can take our the double underscore. and also mongoose added version key to the res automatically (__v) we can remove this as well...// but this approach is really view level logic, so if we re following the MVC approach it better to put this logic in the view layer instead of the model.
+- **SignUp route handler** - in the sign in route handler we can use the import { body, validationResult } from express-validator; // this body fn to validate the body incoming req. and this same logic we will be using across all our service for the validation of our reqs, so we can extract the logic put it in a separate file (ex MW/validation-req.ts). and in this handler we also included the **JWT** and store it in the session obj.
+  - and for this signIn logic just the usual checking / conditions like the user already exists or he provided the correct p/w like that. and also in this route handler we again added the **JWT** and assign it to the session obj..
+  - **Current User route Handler** the current user route handler includes logic like whether or not the user is logged in an who the user is ? and that req will ve the cookie if the user exist . and if the user not logged in there will be no cookie. - we gon check like does the user ve "req.session.jwt" set ? 
+  - and also in this route we will be verify the jwt token by using the jwt.verify( method takes session obj and verify key) from the json web token package.
+- **SignOut route handler** - essentially we gon send back a header that's gon tell the user's browser to dump all the information inside the cookie (just emptify the cookie) from the cookie session manage we can destroy the session ex - req.session = null; then send the empty res ex - ree.send({});
+- **current user MW** we can extract the logic of those above 2 route handlers into the middlewares, the reason is as we the mw are the ones our req will first pass thru b4 even reaching the route handler.. in this he set it up 2 mws 1. mw to extract the jwt payload and set it up on 'req.currentUser' and 2. the mw to reject the user if the user is not logged in.
+  - and in the current user mw we will be augmenting the type definition (for add the currentUser prop to the req obj) we gon add in the additional prop to the type defn of what a req obj is. for that create a interface of what our payload is (email and p/w) then we can assign the interface to the declare global ex - declare global { namespace Express { interface Request { currentUser?: IUserPayload; }}} // this is how we modify the existing type definition.
+  - 2. mw that rejects if the user is not logged in - requiring the auth for route access. (require-auth.ts) 
+  - now our current user route ('current-user.ts') will look like this ex - route.get('/api/users/currentuser', currentUser, requireAuth (req, res) => {}); // with those 2 mw (in order wise)
+----------------------------------------------------------------
+
+### .Net and Ng jwt authentication
+
+- ve to install some of the packages like ms.aspnetCore.Authentication.JWTBearer, then Identity.EntityFrameworkCore, ms.aspnetcore.identity.ui, ms.EntityFrameworkCore.Tools
+- for the db migrations - `dotnet ef migrations add "initial-migrations"` then to create a actual db out of this migration `dotnet ef database update` - after this our app will go to the config file and get the connection string then it gon check if there is any migrations file then it gon exec all of em.
+- in this we can will create id for each jwt we ve created so we can track the jwt
+- `ng generate environments` will generate evn.dev.ts  and env.prod.ts under the env directory.
+
+### Spring boot OAuth2 keycloak authentication(prog techie)
+
+- the source code [here](https://github.com/SaiUpadhyayula/spring-security-oauth2-keycloak-demo.git)
+- the oauth2 is the standard way of providing authorization credentials to our services (providing authorization b/w the services hence the name OAuth)
+- some of the oauth2 terminology are 1. protected resources 2. resource owner 3. resource server 4. client (can be confidential client or public client) 5. Authorization server (gen and validate access token for clients) - some of the auth server are aws cognito, google identity platform, ms AD, **keycloak**, spring boot auth server.
+- **OIDC** open id connect protocol build on top of oauth2 that act as identity layer - this will provide the user info (**UserId token)** - so when the user req a token, it will provide the **access token** and the **userId token**
+- access token to verify the user is authorized or not and the user id token to verify the user information. 
+- **Keycloak**
+  - once we install the keycloak server we can see the **Realm** is like the we can manage clients users and rules we can create a realm and add users and rules. and also in the realm settings we can find the open id endpoint config - can see all the url belongs to our realm. and we can grab and use the issuer url which will provide all the endpoints  
+  - and we can gen the client secret as well.. then we can login, once the user logged in we  can see the id token with the **new claim** of user info 
+- **PKCE authorization code flow** spelled as picksee stands for **Proof key code enhanced**.. created for public facing client ex - web app, considered as best practice to follow
+  - if we store the client secret in the client to make a post call for the token endpoint, this is very risky coz anyone can view the source code of the java app and find the client secrets if it store it in the client.
+  - for this reason this PKCE was created, by this flow we don't ve to store the client secret in the client. in the get url we gon send 2 additional query param 1. code challenge (code verifier) 2. code challenge method for more info {refer pkce auth flow doc }, finally this will send the access token 
+  - now if the client loggin, in the token (we can inspect and see ) our token obj and also there is a prop refresh_expires at prop, so if the access token expires it can req a new access token.
+  - in the keycloak admin page we ve to add our ng app url as the valid url, access type - public, advanced settings - select s256 for the pkce for the hashing
+
+- **ng app** in our ng app add the package `npm i angular-oauth2-oidc` - and if we see the client code its easy to understand how we re encapsulating the keycloak server for the auth.
+- the clients make the post req to the token endpoint to retrieve the access token with the grant type as client credentials. usually the clients are cli app or shell scripts, or remote server of microservices. it will also include the client id and the client secrets to authenticate themselves with the authorization server.
+- then the auth server will validate the credentials and if they are valid it will send the access token to the client. in the client's header will include the access token as the part of the req.
+- in the microservice arch the req will pass through 100s of microservices, and to pass the token from one service to another we will follow the design pattern called **token relay** we can implement this in our spring by using **WebClient** or Template Rest api (which is deprecated)
+
+- **Refresh token** - the auth server will usually respond with the access token and the refresh token. the access token is usually short lived and expired. and the refresh token will help us to generate a new access token (w/o asking the user to login again)
+    - by setting the scope(in post man) - openid offline_token - we will get the refresh token of unlimited expiration, instead of 1800 secs
+  
+- **password grant flows** lets see how this flow works, username and password are used to authorize but not recommended to use OAuth, can only be used if we ve absolute trust on the client.
+  - **single sign on functionality** provide the convenience way to use our existing social media account to auth any 3rd party app. and in this way we don't need to register each and every service we re gon use. in our keycloak admin page under the identity provider we can select the github or any thin for  the SSO
+
+-----------------------------------------------------------------------
+
+### integrating the Auth with the RxJs and signals
+
+- source code [here](https://github.com/joshuamorony/angularstart-chat.git) is a ng chit chat app.(for the firebase backend)
+- rxjs for the events and the signals for the state, 
 
 
 

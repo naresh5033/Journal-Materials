@@ -310,8 +310,9 @@ but if we do wana use array list in the multi threaded environment then we can u
 - the annotations can be processed by the the compiler during the runtime with some code that we write ourselves,
 - @SuppreessWarnigs("unused") will suppress warnings for the unused vars/ fns.
 - to create our own custom annotations is sim to creating a class ex - lets crreate a annotation called VeryImportant ex - public **@interface** VeryImportant{} - that's it, this is how we create the custom annotation. and there are couple of more annotations we want to add in our custom annotation class.
-- 1. @Target({Element.TYPE}) for where this annotation is valid to be used on, ex - Element.TYPE means its only valid to be used on the class and lly we can add multiple elems for ex if we want to use it for the methods just use the Elemenet.METHOD obj, if we want to use this custom annotation for the entire app, then we can leave the @Target(). 
+- 1. @Target({Element.TYPE}) for where this annotation is valid to be used on, ex - Element.TYPE means its only valid to be used on the class and lly we can add multiple elems for ex if we want to use it for the methods just use the Elemenet.METHOD obj, if we want to use this custom annotation for the entire app, then we can leave the @Target().
 - 2. @Retention(RetentionPolicy.RUNTIME) // 99.9% of the time we will use this retention policy.runtime, means telling the java to keep this annotation around runtime so the other codes can look and use it while the program is running.
+
   - and the other 2 vals we can set for the retention policy are "source and class". source - java will get rid of the annotation b4 even it starts to compile the code. only used for the annotations that matters for code b4 even compile ex - @SuppressWarnings()
   - class means java will keep the code during the compilation and once it starts during the runtime it will get rid of the annotation
   - to check if the class has any annotations in it ex - myCat.getClass().isAnnotationPresent(VeryImportant.class); or we can wrap this code with the if statement. to check if the class has any annotations and console.log.
@@ -320,22 +321,20 @@ but if we do wana use array list in the multi threaded environment then we can u
 - we can also declare the props for the cust annotations inside the class body ex - lets add the prop of time that runs our annotation wants to run. But the property field has to be the method not the regular fied ex { int times();}
 - then pass the arg while calling the annotation ex @VeryImportant(times = 3) and access this property inside the condition statement
 - ex - `for(Method method : myCat.getClass().getDeclaredMethod()) { 
-        if(method.isAnnotationPresent(VeryImportant.class)){
-           VeryImportant annotation = method.getAnnotation(VeryImportant.class);
-           for(int i = 0; i < annotation.times; i++){
-            method.invoke(myCat)
-           }`
-- now while using the params for the annotation the params can be of primitive type, class, string or array of any of em.. and we can also pass in default val ex - { int times() default 1;} 
+      if(method.isAnnotationPresent(VeryImportant.class)){
+         VeryImportant annotation = method.getAnnotation(VeryImportant.class);
+         for(int i = 0; i < annotation.times; i++){
+          method.invoke(myCat)
+         }`
+- now while using the params for the annotation the params can be of primitive type, class, string or array of any of em.. and we can also pass in default val ex - { int times() default 1;}
 
-- lets create and process a cust annotation for field in a class, lets say the annotation is intended for the str field in our class,  everything is same as the above except this time the target is for the field ex @Target(ElementType.FIELD) 
+- lets create and process a cust annotation for field in a class, lets say the annotation is intended for the str field in our class, everything is same as the above except this time the target is for the field ex @Target(ElementType.FIELD)
 - now we can use this in the fields of our myCat class and to access the declared fields of myCat ex - myCat.getClass().getDeclaredField()
-
 
 ### Junit testing
 
-- as we knoow the unit testing is the testing that isolates one single piece of code and verfies that piece is working correctly.. 
-- add the Junit to our dependencies, and in our class (in intellij) just hit ctrl + shift + t - to create a new test class (file). which will be imported from the junit.jupiter.api.assertions package.. and our test file will be in the path src/test 
+- as we knoow the unit testing is the testing that isolates one single piece of code and verfies that piece is working correctly..
+- add the Junit to our dependencies, and in our class (in intellij) just hit ctrl + shift + t - to create a new test class (file). which will be imported from the junit.jupiter.api.assertions package.. and our test file will be in the path src/test
 - @Test() inside the test class we mark our test fns with this annotation. and the remaining tests fn are same as we seen like milliion times ex - assertEquals(expected: 4, actualResult); ..lly for the negative / fail test we can use assertNotEquals() and assertTrue() for boolean tests, and assertNull(), assertNotNull() ..etc
 - one of the goals of the unit test is that whenevr code is not doing right thing at least one our test should fail.
 - we do ve the option to run our tests with coverage and if we run with the coverage option then we can see the which lines of code are covered /tested.
-
