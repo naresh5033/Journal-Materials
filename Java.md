@@ -321,11 +321,11 @@ but if we do wana use array list in the multi threaded environment then we can u
 - we can also declare the props for the cust annotations inside the class body ex - lets add the prop of time that runs our annotation wants to run. But the property field has to be the method not the regular fied ex { int times();}
 - then pass the arg while calling the annotation ex @VeryImportant(times = 3) and access this property inside the condition statement
 - ex - `for(Method method : myCat.getClass().getDeclaredMethod()) { 
-      if(method.isAnnotationPresent(VeryImportant.class)){
-         VeryImportant annotation = method.getAnnotation(VeryImportant.class);
-         for(int i = 0; i < annotation.times; i++){
-          method.invoke(myCat)
-         }`
+  if(method.isAnnotationPresent(VeryImportant.class)){
+     VeryImportant annotation = method.getAnnotation(VeryImportant.class);
+     for(int i = 0; i < annotation.times; i++){
+      method.invoke(myCat)
+     }`
 - now while using the params for the annotation the params can be of primitive type, class, string or array of any of em.. and we can also pass in default val ex - { int times() default 1;}
 
 - lets create and process a cust annotation for field in a class, lets say the annotation is intended for the str field in our class, everything is same as the above except this time the target is for the field ex @Target(ElementType.FIELD)
@@ -338,3 +338,258 @@ but if we do wana use array list in the multi threaded environment then we can u
 - @Test() inside the test class we mark our test fns with this annotation. and the remaining tests fn are same as we seen like milliion times ex - assertEquals(expected: 4, actualResult); ..lly for the negative / fail test we can use assertNotEquals() and assertTrue() for boolean tests, and assertNull(), assertNotNull() ..etc
 - one of the goals of the unit test is that whenevr code is not doing right thing at least one our test should fail.
 - we do ve the option to run our tests with coverage and if we run with the coverage option then we can see the which lines of code are covered /tested.
+
+### spring batch processing
+
+- as we know the batch processing is the technique to process the data in a large group instead of single elem of data. ex the source can be a large records of csv file to the (destn) can be the db and vice versa.
+
+- there are list of components in the spring batch processing 1. Job Launcher (interfaces) is like the entry point to initialize any jobs (runs any job)
+  - 2. Job Repo (has the state of the job)
+  - 3. step (has item reader, item writer, item writer) the job can ve multiple step. and for each of these (step and job ve factory interface of their own ex - JobBuilderFactory, StepBuilderFactory)
+
+**Implementation demo** - the code repo [here](https://github.com/Java-Techie-jt/spring-batch-example)
+
+- lets install some dependencies such as mysql lite, jdbc, jpa, spring batch, and we ve dummy csv file ex - customer info, and to map this csv to the db we ve to create a entity file with all the fields in the csv file.
+
+- the in our config class along with the @Configuration() annotation we ve to also use the @EnableBatchProcessing() annotation
+- the DelimiterTokenizer class will helps to extract the vals from the csv and the BeanWrapperFieldSetMapper class will map the vals to the target class(customer), this classes we impl in the **item Reader class**
+- lly we ve to impl the **item Processor class** and the **item Writer** - and in the writer is where we write /save all the vals (read from the csv) to the db.
+- then create a **Step** class and pass in all those 3 item reader, processor and writer. and this step we will also specify the chuck the (no of chuck size we want to use for our data)
+- then we ve to create a job class and pass in the step obj.
+- now we ve to give this job obj to our **Job Launcher** so we can trigger the job (we can do this impl inside the controller)
+- then we can start our app, and in the db we can see there are few more tables added by the spring batch in our db.
+- but so far our spring batch will add all the records synchronously(by default) and to leverage the use of spring batch we ve to do this asynchronously,
+- so for that we ve to create a class - TaskExecutor (from io thread) - and pass in the concurrency limit (10) - 10 threads to execute the task. but there won't be any ordering in the id (it will just add the record to the database randomly)
+
+- **Partitioning** - the partitioning is to achieve the parallel processing and the partitioning means assining multiple threads to process a range of data sets. ex - we can assign the record of 1 to 1000 to thread 1, and 1001 to 2000 to thread 2.
+- the partition class we can implement from the Partitioner interface
+
+### Spring Bean life cycle
+
+- as we know the spring bean class has the @Component() annotation, means it will be managed by the spring container, the container is the context of the app. means the program will keep track of all the class with the @Component annotation and it will **inject** em in the other part of our app.
+- some of the common bean annotations are @component, @Bean, @Controller, @Service, @Repository, @Autowired, @RestController..
+- **Spring bean Scope**
+
+  - we can define the spring bean init and the destroy methods in the @Bean(name="orderBusinessService", initMethod="init", destroyMethod="destroy)
+  - call the "initialize" method when the Spring bean is created and call the "Destroy" method when the spring bean is destroy (to avoid the mem leaks )
+  - when defining the bean we ve the option of declaring the bean with the **scope annotation** which tells how long the Spring bean will live.
+  - so the bean life cycle will go like this: initialization, utilization, destruction.. the utilization will tells what the purpose of the bean is.
+
+  - **Spring boot scope option**
+  - Singleton - is the default scope, this scopes the bean definition to a single instance per IOC container. - @Bean() - (as we know the usage of the singleton scope, it can also be used for the db where the connection can be live for the entire application, or for the controller)
+  - Request - this scopes the bean deifnition to Http request - @RequestScope() (for the search result we can think of using this scope)
+  - Session - this scopes the bean deifnition to Http Session - @SessionScope() - this scope can be used in the authentication. or in the game of where we can save about the user states. so the session scope peresist until the user logs in and logs out (during the session of the user)
+  - Global - this scopes the bean deifnition to the global Http session.
+  - Prototyp - this scopes the single bean defintion to have any no. of objs instance.
+
+- **@PostConstruct, @PreDestroy**
+  - in the ex - he just write the jdbc code to connect the db but didn't close the connectioin - hence the mem leaks.
+  - the @PostConstruct() annotation will exec the method once the bean obj gets initialized.
+- as we know the flow of the DI, once the obj gets instantiated it will loads all the dependencies, and then calls the init() method. and this init() we will annotate with the @PostConstruct annotation
+- lly for the db connection close() / clean up method we can use the @PreDestroy() annotation, which will destroy/delete b4 the obj the container gets destroy (to preserve the mem leaks)
+- this is for the standalone app(desktop app), we ve to do it this way with the @PostConstruct and @PreDestroy, and for the web app, the spring will do it automatically. ex - in the standalone app - in our main app class file.. AplicationContext applicationContext = new ClassPathApplicationContext("beans.xml"); ((ClassPathApplicationContext)context)).close(); // we can either call the close() method or registerShutdownHook()
+  - this registerShutdownHook() will exec once the main thread ends. so once all our code gets executed, it will be called and close our container, so it will not give any exception irrespective of the line no. we re calling it.
+  - what if multiple class contains init(), destroy() ? instead of defining multiple times, in our beans.xml file we can define it with the **default** kw ex - default-init-method = "init"; default-destroy-method = "destroy";
+- another way to initialize the bean is to use / impl the interfaces **InitializingBean** in our class and **DisposableBean** interface to impl the destroy() method. by using these interfaces we now no need to use the annotations and then defining in the xml these interfaces will take care of the things for us.
+- but the recommended way is to use the annotations instead of the interfaces.
+
+### Reactive, Spring Webflux
+
+- when we re sending the async fetch request to the db, the servlet thread in our tomcat server (lets say the limited servlet thread pool size is 200) will be able to manage 200 reqs async and if any additional requests comes in then the servlet will wait for the thread to finish the task and use it to handle the requests.
+- but there is a better way/ mechanism to do this, so in this approach the servlet thread will not wait for the db to finish fetching the data instead of waiting it will immediately return and takes the another request. once when the data is fetched from the db it will takes and res to the request. the res can be send / pick up by any thread that is free.
+- so this way we can eliminate the waiting or no blocking mode (for the thread pool) .. and this mechanism is called **Event Loop** so every thing is an event in the event loop and we know how it work {refer the ts notes fro the async event loop mechanism}.
+- And this mechanism/ complexity is managed by the **spring webflux** which is an end to end reactive. can use less no.of threads and can ve higher CPU efficiency and higher scalability.
+- so we can think of it as the node js.. this webflux will brings the node js async type of functionality into spring for handling the non blocking.
+  - and to handle this reactive approach the spring framework also has the reactive db drivers such as mongodb-reactive, cassandra-reactive, redis-reactive, spring-jdbc-reactive etc.
+- for using the non blocking we can use the **CompletableFuture<T>** as the return type in our controller path. means we re saying that we don't ve the val rn and we will add it in the future obj.
+- in spring webflux the name for this CompletableFuture<T> feature like entity is called **Mono<T>** and **Flux<T>**
+- these are the 2 types of futures in spring webflux, the Mono<T> return type we can use when we ve 0 or 1 element. or single val
+- and if we ve more than one elem we can use the **Flux<T>** return type.. for the list of vals or the live List of vals(stream of events like the rxjs) - so every time the record is inserted into the db it will emit the event then it will stream the live data to the client w/o having the client to continously pooling the data.
+
+  - this similar approach we can also use it in the req as well ex - in our controller - public void getLivePrice(@RequestBody Flux<T> prices){price.subscribe()} // and the annotation for this method will look like @PostMapping(value="/save/price", consumes = "application/stream+json" ) //
+  - here this consumes param will keep the connection b/w the user and web server open, and the client can keep pushing new vals at any point in time.
+
+- there are also other features of the webflux such as fuctional Api, combinators, webclient, Backpressure, scheduler.
+
+- **Full reactive Stack**
+  - we can add this approach to our existing application, in spring MVC we can impl this webflux to make it reactive non blocking i/o (reactive request handling in @Controller)
+  - the web client came in jdk 8, which has the fuctional fluent api, async non blocking io, reactive/ declarative by design, Streaming.
+  - just like the rxjs the Mono or the Flux<T> future vals we ve to **Subscribe()** for getting the streams/ non blocking io
+  - just like the observables, the Stream class has the of() ex - Stream.of(), and the Mono.when(), .take() methods etc
+  - the reactive out of the box only runs 4 threads, and to achieve the non blocking it relies on the callbacks.
+  - when we work with the reactive and making the nested asyc call (which itself returns the flux or mono) we ve to use the **FlatMap** instead of map() ex - Flux.range(1,3).flatMap(i -> client.get().uri("person/{id}", i).retrieve.bodyToMono(Person.class).collect(Collectors.toList()).blockLast()). // .blockLast() is same as the .then().block().
+  - these are all from the **webclient** however also in the spring MVC web supports as well
+  - the spring MVC supports reactive, the controller can return Mono, Flux and **Observables**. It decouples from container thread and built on top of servlet 3.0 asnyc
+  - and the reactive type handling are for Mono - DefferedResult, for Flux/non-Streaming - DefferedResult<List<T>> and for Flux/streaming - ResponseBodyEmitter with back pressure
+  - the reactive handling is not just the web client, it also supports spring Data Repositories, websocket client in WebFlux, CF java client, RabbitMQ Http client etc.
+  - web test client - we can use it for the integration testing of the web client (in streaming scenarios)
+
+### linked hash map and linked hash set
+
+- linkedHashMap - is a combination of link list and hash map extends the hashMap<T> and impl the map interface.
+- this maintains the order of the insertion (kvp).. so our entry (record) will ve key, value, hash(of k and v), next(by default it is null) val, before(node), after(node)
+- the linked hash map also has the head and tail - (the first node and the last node) which is not available in map.
+- all these six vals in the Entry class..
+- when we create/enter a first record the default vals of the next, before and after are null, and it will store/contain the val of the head and tail(which are record itself since it is only one record ).
+- and when we start adding the subsequent record it will update the tail of the first record and also the after val of the first record. and the head, before of the second record. lly for all the subsequent records. it will keep track.
+- these all are for the put/post operation.. lly for getting the records, it will hash() our key and search for the key (hash already exists) and finds the val of the hashed key.
+- lly there is **linke hash set** instead of storing kvp, it will only store the val.
+
+- **HashMap** - ex HashMap<String, Integer> employee = new HashMap<>(); // will hold the empl name as the key and the id as the val. and it won't accept the **primitive types** ex int, or long
+- and to add the recordes - employee.put("jon", 1234);
+- the hashMap doesn't care about the order.
+- and to get the val we can use the get() ex - employee.get("Jon")
+
+### Spring Boot web service using SOAP (Simple Object Access Protocol)
+
+- SOAP is a messaging protocol. Messages (requests and responses) are XML documents over HTTP. The XML contract is defined by the WSDL (Web Services Description Language). It provides a set of rules to define the messages, bindings, operations, and location of the service.
+- we can use the web service spring boot starter package(which has the soap) to use the SOAP, and additionally we need to ve the **WSDL**(wsdl4j) dependency, if we re creating the soap based service we need to ve the WSDL, stands for web services descriptive lang. its sim to json.
+- there are 2 ways to develop the soap based web services, 1. contract first (wsdl to java) and 2. contract last (java to wsdl).
+- in the spring framework we don't need to write the wsdl file only we need to write the xsd file (xml schema definition), spring boot will generate the wsdl file for us.
+- in the xsd file we only write the cust req (like name, age, income) and in the response we write like (is eligible, approved amt)
+- also for the soap req we can create a xml file <soapenv:Envelope > and lly like the soap env header and the body
+- once we created our xsd file we need to gen the binding class for that we ve to use the **xjc** plugin,
+- now if we build our app, we can see the sb creates a package that we mentioned name in the xsd file and inside there is a class with all the fields that we mentioned .
+- it creates bunch of class files like one for the req, one for the res, and obj factory class etc.
+- and then we can add the controller, config nd service impl class by ourselves.
+
+- **Consuming a Soap web service**
+- just like the REST templates(for consuming the restfull app), sb provides the template for consuming the soap based web service
+- just create a new sb project (client for consuming the soap based web service)
+- we ve to create the binding class (from the wsdl file) for that we can use the plugin called "jaxb2" is from the jaxb2 marshaller
+- once we done with the soap client we can use the REST controller to invoke our soap client to get the loan status of the client
+
+### AVRO (write a kafka avro producer)
+
+- producing avro msgs on kafka using sb.it uses **confluent** platform and uses schema registry to service to deal with the avro schema files.
+- the dependencies are 1. schema registry clients 2. avro serializers (to use the avro msgs we need to serialize them in order to push the topic) 3. AVRO (specific to create the schemas.avsc files) 4. Avro maven plugin (to gen the java classes out of the schema) we also ve to specify the src and the destn in the pom file under the plugin section
+- in the resource dir we can create a package "avro_schema" and inside we will ve our avsc file which is nothing but a json file. and this we can use to publish the msgs on the topic
+- now if we build the app, then it will gen the AVRO file out of the avsc file, and when we push the msgs we will use this avro java class file.
+- then in the yml file while configuring the kafka producer, under the producer section we use the "key serializer (from string Seriralizer class)" and the value serializer, the classes that we installed from the avro serializer package.
+  - and in the properties section just mention the schema registry url (default port name of thhe registy server is 8081)
+- and also mention our **topic** to publish the msgs
+
+- then we can craate the producer package and create a service class for the kafka producer(DI kafkaTemplate) and it will ve send() and inside this fn we will use the send() from the kafka template(which takes the key and val and key must be in the type string so use the **String.valueOf()** to type cast)
+- then create a REST Controller,
+- then he started 3 services from the confluent platform, 1. kafka 2. zookeeper 3. schema registry(since we re gon to produce the avro msgs, we re gon to talk with the schema and avsc file.)
+- then finally use the post man to send the req (with the json body)
+
+### spring boot avro Kafka consume msgs from the topic
+
+- lly like the producer, just in the yml file define our consumer properties - and here sim to key and val serializer we will be using the "key Deserializer(from string Deseriralizer class)" and the "val Deserializer" for the consumer.
+- along with them there is also one more prop **autoOffsetReset** - which ve 2 vals/options tells when we want to read the data 1. earliest(first - reads the msgs from the kafka topic from the 1st offset) or 2. latest (read the msgs from the kafka topic from the latest offset)
+- then create a consumer cofig class with the we ve to craete couple of beans 1. consumer factory and 2. kafka listener container factory.
+- then create a consumer service class with the @Listener(topic ="", consumerFactory ="KafkaListenerConsumerFactory") annnote with our read()
+
+- refer the code [here](https://github.com/vishaluplanchwar/KafkaTutorials.git)
+
+- **Topic** is the stream of data, is sim to the table in the db.
+- **Partitions** the topics are split into partitions, the partition starts from 0, each partition is ordered, and each msg with in the partition gets incremental id called **offset**
+- data is kept in kafka only for a limited amount of time (default 1 week), but the offset will keep increasing (it doesn't go backwards).
+- once the data is written to the partition it can't be changed (immutable)
+- **kafka consumer and consumer group** lets say if our consumer wants to read msgs from the partitions in parallel(read 2 msgs) - here with in each partition the consumer will read msg 0 then msg 1, means with in the partition the msgs are read in order.
+- but they are read in parallel across partitions.
+- **consumer groups** the consumers can be organized into consumer groups to leverage the parallelism.
+  - we can't ve more consumer than the partition otherwise the consumer just does nothing(inactive).
+  - lets say if we ve 3 partitions then in our consumer group we will ve 3 consumer reads from each partion to make sure the parallelism.
+- **consumer Offsets** - now how do the consumer knows where to read from - thru the consumer "offsets"
+
+  - kafka stores the offsets at which the consumer group has been reading.
+  - the offset commits live in kafka topic named "**consumer**Offsets"
+  - when a consumer has processed the data receieved some kafka, it should be commiting the offsets.
+  - if a consumer process dies it should be able to read back from where it left off (by using the offsets)
+
+- **Kafka Brokers** - the kafka cluster is composed of multiple brokers (aka servers)
+
+  - each broker is identified by "ID" (int)
+  - each broker contains certain topic partition
+  - after connection to any broker(called a bootstrap broker) we will bee connected to the entire cluster.
+  - a good no. to start with the brokers is 3, but some cluster ve 100s of brokers on em.
+  - each broker consist of partitions and topics (some brokers may not contain the topics), if we connected to the broker that doesn't ve any topic it will redirect us to the broker that has our requseted topic.
+
+- **Topic replication Factor**
+
+  - the topic should ve the replication factor which is gt 1 ( usually b/w 2 and 3)
+  - so this way even if a broker break down/crash the other broker will serve the data.
+
+- **Leader of the broker**
+  - any time a broker can be leader of the given partition and only that leader can receive and serve the data for a partition.
+  - the other broker can synchronize the data.
+  - there each partition has one leader and multiple ISR(In Sync Replica)
+
+### Load testing (JMeter apache)
+
+- **Performance Testing** - is a type of s/w testing to ensure the s/w apps that will perform under their expected work loads.
+- there are 2 types of tests 1. stress testing nd 2. Load testing.
+- **load test** is check to see if the app is perform/ under with the no. of user reqs (ex 1000 reqs)
+  - this load testing determines the s/w's performance according to the real life condition. and it checks how much load a s/m can handle.
+- **stress test** is check to see how well the app will perform with high load nd limited resources.
+- the jmeter also supports stress testing, distributed testing, web service testing by creating **test plans**
+- this also supports protocol such as http, jdbc, jms, soap and ftp.
+- it can support reporting, can support dashboard report generation.
+
+- **Elements in jmeter** there are 4 elems / components in the jmeter 1. Thread 2. sampler 3. listener 4. configuration
+- 1. thread group - is a collection of threads, each thread represents one user using the app under test. (in other words each thread simulates one user req to the server.)
+- 2. Sampler - since the jmeter supports multiple protocol and how does the thread knows which protocol to use for the req, this is where the sampler comes in, and it will ensure to use the correct protocol for the user req to the server.
+- 3. Listeners - shows the result of the test execution, table / graph / tree / log etc..
+- 4. configuration - it sets the default vars for later use by the samplers - this also have http cookie manager, csv data set config, login config, http request default. etc
+
+- jmeter also provides "Recording and playback"
+
+### Quarkus and JPA Streamer(fcc)
+
+- quarkus is a open source java development platform. just like we sb we can write our app normally and the build process is bit different.
+- some of the advantages are we can be able to restart our app with in split seconds, and when we re ready for the deployment, the native build capabilities of qurkus will boost our performance significantly. both in terms of start up time and reduce the mem footprint
+
+- **JPA Streamer** is an extension for the hibernate that doesn't impact the hibernate how we'd use normally but it does extend the api with the capability for **java Streams**, means the stream api as the way of expressing our queries and upon execution it will automatically translate our queries into sql.
+  - aueries are - intuitive to read and write, type-safe, translated to efficient hql queries,
+- its a cloud native framework. low mem footprint, higher throughput, and it integrates wide range of java libraries.
+- less boilerplate, live reload, more action, continous, targeted, testing
+
+- querkus.io is the starter just like the spring io starter we can select the build tool, artifacts and the starter plugins we need.
+- for the db she uses the oracles 'sakila' db in the docker, which comes with the actor (imdb) model. `docker run --platform linux/amd64 -d --publish 3306:3306 --name sakila restsql/mysql-sakila`
+
+  - the db's user name - root and the p/w - sakila. and the url - jdbc:mysql://localhost:3306/sakila
+  - and then sim to the sb, put all the db props in the application.properties file
+  - then only for the actors and the films table she generated the entity class.
+
+- the streamer will translate our stream pipeline into sql queries and in order to do that it need some extra meta information about the columns we wanna query, (JPA MetaModel)
+- rigth click our app and select build module - it will gen the meta model and the target dir..
+- and the generated source dir we ve to mark / assign as the "generated sources root".
+
+- then create the endpoints to serve the films to the clients. REST controller
+- **Quarkus Dev mode** - to run the app in dev mode the cmd is (also we can find in the readme file) `./mvnw compile quarkus:dev`
+- the quarkus also provides swagger ui in our rest controller endpoint ("/").. and for the every sub sequent endpoints or the changes we make in our app, and we save it it will replicate in the running app, just like the HMR hot reloading (front end) w/o having to restart our app manually.
+- and to make our class singleton make sure to use the **@ApplicationScoped** annotation
+- also in the controller we can use the **@Produces(MediaType.TEXT_PLAIN)** annotation
+- sim to nest or the ng, to do the DI we can use @Inject annotation. and our streams we can use the post fix $ ex - Film$ - is the stream.
+- while making any updates / put method (in our service class) we ve to use the **@Transactional** annotation to persist any updates that we make on the entities.
+- quarkus has the cool feature built into the dev that allow us to create tests that runs every time our app restarts.
+- **continuous JUnit test** - quarkus comes with the default jUnit 5. - we can ues the **@QuarkusTest** annotation, we can also use the plugins called **rest-assured** to test our rest controller ..
+- lly we can also perform the unit tests
+- **Debugging in the dev mode** - `./mvnw compile quarkus:dev -Ddebug` just add the Ddebug flag in the run command.
+- then edit our intellij configuration - and select remote jvm options.
+
+- **Native compilation** - `quarkus build` to build our app (creates a std jar file) - the target dir will be created and inside we can find our app.jar file and to run the jar file using the regular java command `java -jar target/quarkus-app/quarkus-run.jar`
+
+---
+
+### Pyspark - apache spark(fcc)
+
+- spark is a unified analytics engine for large datasets - this also provides the data frames sim to the pandas DF
+- this also provides spark "M Lib" which allow us to perform ML task like regression, classification, and clustering etc.
+- some of the features are its faster, easy to use(in multiple langs), generality etc.
+- we can use the jupyter note book - `!pip install pyspark`
+- when we work with the pyspark we always starts with the park session ex from pyspark.sql import SparkSession; then give it the session name ex - session = SparkSession.builder.appName("practice").getOrCreate();
+- and sim to the pandas we can create df and read / write csv files and use head() , show(), tail() fns
+- add / drop columns describe(sim to pandas)
+- to check the data type of the column we can use df.printSchema(). and to see the data types of each coulumns df.dtypes();
+
+- **handling missing vals / null values**
+
+  - handling missing vals by mean, median or mode.
+  - to drop the null val columns we can use df.na.drop() lly for filling the missing vals df.na.fill() fill takes 2 arguments 1 val and subset/column
+  - import the Imputer and then we can use the mean, median for our missing vals.
+  - the tilde ~ sign is the not operation !
+
+- **Data bricks** - also helps us to impl ml flow / cicd pipeline

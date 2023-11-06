@@ -254,7 +254,58 @@
     - if we run the domain.bat file the eap will run in the domain mode.
 - **Redhat dev studio** is a desktop application we can install and  this one has lot of options  we can use for the jboss, j2ee projects (eclipse built in), web browser, and many more..
 - 
-- 
+-------------------------------------------------------
 
+### Integrating ML to the spring app
 
+- DJL - is a Deep learning Java lib, - its scalable and  its like keras.
+- this lib is api designed for java, its multithreaded support and mem control.
+- engine agnostic like pytorch, tf (write one run anywhere).. and we can run this same model with other libs ex - tf w/o changing more codes (just change the deps)
+- model zoo - 70+ pretrained model out of the box. 
+- why Djl - since the Java community lacks DL packages(since most of the ml libs in python which are slow and causes some probs while integrating with our apps), and DJL provides the DL with strongly typed lang, and follows DI approach, service code readability and realiability.
+- we can think of this lib like a mw for our app to integrating the ml feature.
+
+- **Advantages** some of the advantages of this lib is easy to set up only 10 lines inference setup, min dep requirement, large scale (offline data processing), fast performance, stable. 
+- models are hosted with the java based model hosting service.
+- **Use Cases** lets see the use cases of this lib. 1. sponsor ads - 2. sponsoreed products (search result)
+- the DJL helps us to run models built with diff ML frameworks side by side in the same JVM w/o IS changes.
+  - the DJL translators helps us to keep feature generation independent of the ML (as we know the feature generation means we get the req, and provide the inference and steps to transform the incomming data to what the model takes as i/p ) and djl has the concept of translators that allows us to keep our feature gen indpendent of how the model is implemented.
+  - djl easily handled high dimension data, djl reduce the batch inference time by 85% (from 24 hrs to 3.5 hrs)
+
+- **DJL spring boot starter** - the spring starter dep for this lib is available for both the maven and the gradle
+- and the future of this lib is - federate learning with DJL, Reinforcement learning(RL) with DJL and these 2 integrations work in progress(maybe available now ).
+- for more info refer the DJL Docs and the github awslabs/djl
+
+----------------------------------------------------------------
+
+- lly we ve some libs for the .net as well ex - the ml.net, cognitive services - for Easily add intelligent features to your .NET apps with our pre-built AI models — such as emotion and sentiment detection, vision and speech recognition, language understanding, knowledge, and intelligent search.
+- azure ml, F# for data science and ML F# (pronounced F sharp) is a succinct, robust, performant language that is great for data science and machine learning.
  
+
+ ### Builder pattern 
+
+ - is usefule when we ve like multiple fields in our class, and when create a new instance inside the contructor we can define only the field we wanted to use and if we think of adding some more field(that defined in the class ) for ex if that field is 4 th position / sequence (order matters) in the class mem var, then we ve to define all the other fields as undefined 
+   - ex - const user = new User (name, undefined, undefined, emai); // instead of this doing like this we can use the builder patter (setter method to all our fields) 
+   - ex - const UserBuilder {constructor(name){this.name = name} setAge(age){this.age = age; return this} build(){return this.user};} // this way we can set use the build() to add the fields(by calling the set method on em) 
+   - now its like const user = new User('jon').setAge(10).build() // this way we can add the class's mem vars.
+
+- but in the newer syntax in the js we can use the optional param(put all the fields inside the obj / prop) for our mem vars field and assign it to the empty obj in the constructor 
+  - ex const UserBuilder {constructor(name, {age, email} = {}){this.name = name, this.age = age, this.email=email }
+  - and now we can instantiate the obj ex - const user = new User("bob" {age: 19, email: 'som.com'}) // in this way we can also set the default vals for these optional fields inside the ctor.
+
+### Adaptor design pattern 
+
+- its nothing but combining two or more interfaces and create a new interface ie the adapter
+
+### composite design pattern 
+
+- is like a tree hierarchy, inside we will ve multiple composite objs and then the composite objs will ve multiple leaf obj, (the leaf obj/ node is the last one in the hierarchy tree if there is no node extending then its a leaf node otherwise its a composite obj / node)
+- so there are 3 components in this patter 1. base component (which is an interface itself)2. composite component 3. leaf component(lets say we ve 3 leaf obj /classes ) and in the composite component along with impl the base component(interface) we also returrn the leaf classes in the ctro ex - private List<T> children; this.childre = new ArrayList<>();
+    - now we will also ve all the methods that are defined in the leaf components)  in the composite. ex - public void addDept(Department dept){children.addDept(dept);}
+- if we want to perform some ops on the leaf node the same ops needs to perform on the composite node / obj.
+- we can do this just by creating an interface and define the method we want and then impl this interface in all the classes in our hierarchial tree.
+- and the thing about composite is we can use the same ops on the leaf obj or the composite obj, if its leaf obj it will print the val and if its composite it will gives all the val of all the leaf obj.
+
+### Factory desing pattern
+
+- belongs to creation design pattern, 

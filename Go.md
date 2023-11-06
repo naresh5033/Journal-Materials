@@ -264,6 +264,7 @@
   - ex - type store[p product] interface {} .. here the store interface takes in the product interface as its type
 
 - **Go Proverbs**
+
   - one of the creator of this lang created awesome set of **proverbs** that outlines some of the more philosophy behind the language.
 
     - Don't communicate by sharing memory, share memory by communicating. (its saying we should try to use chans more often than use the mux)
@@ -338,3 +339,17 @@
 - then the final feature we wanna add to our rss feed agg is, we wana able to get our users the list of newest post from the feeds they re follwing
 
 - the project in the workplace dir - go/workplace/fcc
+
+### Rpc and gRPC (go microservices udemy)
+
+- are great for communicating b/w the microservices
+- as we know the grpc supports multiple languages, its a platform independent.
+- to install gRPC first install the proto `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27` and then install the gRpc `go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2`
+- in the project - inside the logger service, in the logs dir we can see the proto file and it is simple and sim to the dotnet proj (bidding service).
+- then to compile the proto file `brew install protobuf` and to run/compile the protoc file `protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go_grpc_opt=paths=source_relative logs.proto`
+- now this command will gen the "logs.pb.go" file
+- and then in the logs service lets impl our grpc server - "grpc.go"
+- then listen for the grpc connections in the same file next to the return response lets define a grpc listener()
+- **the grpc client** - in the broker service we can create our grpc client first install the grpc in this service as well - `go get google.golang.org/grpc` (the steps are pretty much the same as we craeted our server)
+  - create a log dir and inside that a file "logs.proto" and in the "handlers.go" -we can create a separate route for this
+  - to build the bin and the docker files `make up_build` and to start - `make start`
