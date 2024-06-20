@@ -84,20 +84,21 @@
 - so if we're creating the projections within the boundary we can use the event store directly.
 - The other option is what is called the catch up subscription - here the consumers are going to point inwards to the event store, since the consumers are going to connect to the event store
 
-- **Note:** - There are different types of event consistency, 
+- **Note:** - There are different types of event consistency,
+
   - 1. Linearized Event consistency(in the event sourcing and we ve the read model) - where we're just representing the same linearized time line and the time line comes forward and it is immutable,
 
 - **types from chatgpt**
 - **Linearizability (Strong Consistency**): Strongest guarantee, operations appear instantaneous.
-**•	Sequential Consistency:** Operations appear in a sequential order, not necessarily real-time order.
-**•	Causal Consistency:** Causally related operations are seen in the same order by all nodes.
-	**Eventual Consistency**: All replicas eventually converge to the same value, but temporary inconsistencies are allowed.
-	**Strong Eventual Consistency** (SEC): Ensures convergence in the presence of concurrent updates.
-	**Read-Your-Writes** Consistency: Ensures a process sees its own writes.
-	**•Monotonic Reads Consistency**: Ensures reads are non-decreasing.
-	**•Monotonic Writes Consistency**: Ensures writes are seen in order.
-**•Session Consistency:** Provides consistency guarantees within a session.
-**•Prefix Consistency:** Reads reflect a prefix of the writes.
+  **• Sequential Consistency:** Operations appear in a sequential order, not necessarily real-time order.
+  **• Causal Consistency:** Causally related operations are seen in the same order by all nodes.
+  **Eventual Consistency**: All replicas eventually converge to the same value, but temporary inconsistencies are allowed.
+  **Strong Eventual Consistency** (SEC): Ensures convergence in the presence of concurrent updates.
+  **Read-Your-Writes** Consistency: Ensures a process sees its own writes.
+  **•Monotonic Reads Consistency**: Ensures reads are non-decreasing.
+  **•Monotonic Writes Consistency**: Ensures writes are seen in order.
+  **•Session Consistency:** Provides consistency guarantees within a session.
+  **•Prefix Consistency:** Reads reflect a prefix of the writes.
 
 These consistency models offer different trade-offs between consistency and performance, and the choice of model depends on the specific requirements of the distributed system or application.
 
@@ -140,15 +141,15 @@ These consistency models offer different trade-offs between consistency and perf
 - **NService Bus**
   - Long running business process
 
-1.  Choreography - a. triggered by the msgs/events
-    b. decentralized logic
-    c. Low coupling (purely reactive)
-    d. difficult to visualize the workflow
+1.  Choreography - a. triggered by the msgs/events. //
+    b. decentralized logic //
+    c. Low coupling (purely reactive). //
+    d. difficult to visualize the workflow.//
 2.  Orchestration - we do ve the centralized place, where we define what the workflow for the business process is
-    a. Triggered by the msgs/ events
-    b. Centralized logic
-    c. Higher coupling (event to command)
-    d. visualize workflow
+    a. Triggered by the msgs/ events.//
+    b. Centralized logic. //
+    c. Higher coupling (event to command). //
+    d. visualize workflow. //
 
 - [https://github.com/dcomartin/LooselyCoupledMonolith/tree/NServiceBus](refer the git for the code)
 - one thing to keep in mind with the orchestration is that the "concept of compensating the Actions" - if in any case there is failure then we need to ve compensating the action that undo or negate the previously succeeded action in the workflow
@@ -161,6 +162,8 @@ These consistency models offer different trade-offs between consistency and perf
 - As we know the ACID is not an option when using amongst the services (maybe good when using in a sevice)
 - That's when the sagas comes into play
 - one of the key / important business policy is that the **invariant** can never be violated. and if we use the concurrent transaction for the same customer will be serialized so the property of the ACID tx will guarantee that the invariant will never be violated.
+
+- **invariant** - an invariant is a condition or rule that must always hold true for a system to be in a consistent state. Invariants are crucial for ensuring the integrity and correctness of data within a system.
 - as we split up the monolith into small MS how do we maintain the data consistency (as we split up the dbs)
 - Use SAgas instead of 2PC
 - the whole idea of saga is break up the distributed transaction into a set or seq of local transaction
@@ -231,52 +234,7 @@ These consistency models offer different trade-offs between consistency and perf
 
 - is a behavior pattern that will allow us to write the interchangeable code so we can select the right strategy based on the situation
 - if we ve a large if block then its a perfect case where the strategy can be perfect fit lets say we ve a orderplaced notification, we wanna send the notification either by the sms or the email
-- in that ex - previously we ve the orderservice and we ve injected sms, email or push service to send our notification based on the conditions instead he made a interface and IOrderNotifier and that is what we ve to inject and then use the switch stmt for the cases
-
-## CI/CD Pipeline (jenkins)
-
-- [https://github.com/devopsjourney1/jenkins-101](the github link in here)
-- The jenkins is not only limited to build the pipeline, we can also use this to automate any tasks, such as running the bash, py script or ansible playbooks
-- the jenkins infrastructure - we ve the **master Server** - controls the pipelines and schedules the build.
-- then we ve the **Agents**/ Minions - which runs/performs the build(which is just a bunch of linux cmds to build, test and distribute our code) in the workspace
-- and the workflow look like this ex - the dev commits the code to the git, the master will aware of this commit and triggers the appropriate pipeline and distribute the build to the agent to run.
-- The agent selection based on the configured label (by us).
-- **Agens types**
-  - 1. **permanent agent**, which are like the dedicated linux server or the windows server for running the jobs (need to ve the java and the ssh installed since the master makes the connection thru ssh)
-  - 2. **cloud Agent** - such as the Docker, K8s, or AWS fleet manager, in this scenario the jenkins can dynamically spin up the agent based on the Agent template that we provided.
-- in the git code ex - he just used the docker as the dynamic agent, so whenever we push or run the jobs, they are run in a dynamically provisioned docker container. this is similar to the k8s or the Ec2 fleet mgr to spin up the pods.
-
-- **Build Types** - There are 2 main build jobs we can run in the jenkins 1. **Pipeline** 2. Freestyle Build project
-- 1. Freestyle Build project - are simplest to create and are basically the shell script that'l run on a sever and triggered by the specific events, like a dev commiting to the repo.
-- 2. Pipelines - use jenkins syntax written in grovy and specify what happens during the build.
-  - are commonly split into multiple stages such as clone, build, test(test against the newly build code), package(packaged up and ready for deployment), deploy(sending out the artifacts to the registry ex sending out the docker img to the docker hub).
-- jenkins has lots of plugins and its a beast when it comes to plugins (as compared with gitlab)
-- in the s/m configuration - manage nodes and clouds is where set up the agents as well as the clouds like k8s, aws
-- in one eg - he just create a job and(in the SCM) use his git repository url which has the py script to run
-- in the build triggers section - if we select poll scm then the master will monitor the git repository and checks for any changes.
-- in the schedule we can use like the cron jobs ex- \*/5\*\*\* to tell the master trigger our jobs for every 5mins
-
-- **Setting up declarative pipeline using Grovy** - here we can directly create the pipeline script in the jenkins ui or we can point to the jenkins file in our local s/m or repo.
-- in an another ex - where we use the grovy script, and to install the packages / dependencies we just ve to give the command in the build stage ex - `cd myapp && pip install -r requirements.txt` and lly for the npm install
-- also in the grovy file we can add the additional code next to the stage(deploy) - ex post {always{}} and this file will exec always once we re done with the deployment. can be useful to send the email notificatiion to our team about the new deployment or even in the failure.
-- we can also add the failure and success block inside the post block
-- **Define the conditions** - we can also define the conditions / expressions on the stage ex - in the test stage we only want to exec that in the dev stage not in the prod, that condition we can define ex - when { expression { BRANCH_NAME == 'dev' || 'master'} {steps: `echo test`}}
-
-  - just like the above we can also define the conditions in the build block/stage, so we can write the expression like { BRANCH_NAME == 'dev' && CODE_CHANGES == true }} .. so this will only build our app when we made the code changes.
-  - **environment vars** - out of the box jenkins provides us some env vars we can use. we can see em in the `localhost:8080/env-vars.html` and in addition to that we can also provide our own environment variables, in the script just define the environment {} block and whatever vars we will define will be available for all the stages that we ve in the script/pipeline.
-  - and inside the stages using the string interpolation syntax we can access the variables `${BUILD_NUMBER}`
-  - inside the env block we can also define the credentials 1st define the credentials in the jenkins ui and then ex - SERVER_CREDENTIALS = credentials('credentialsId') // this credentials() fn will help us to bind the credentials to our env var.
-  - and for that we need to install couple of plugins **credentials binding and the credential plugins**
-  - if we only want the credentials to be used for only one stage(instead of all) we can use the wrapper - withCredentials([userNameAndPassword()]) // so this will allow us to get the username and password individually.. and inside that method we can define the params like credentials: 'server-credentials', usernameVariable: USER, passwordVariable: PASSWORD // storing our environment variable as USER and PASSWORD and now inside the script we can use ex - sh "some script ${USER}"
-
-- **tools** - this block will allow us to use specific tools for our project ex - maven, jdk, gradle.
-  - ex tools { maven 'Maven'} and in the stages we can use em sh "mvm install"
-- **using parameters for the parameterized build** - ex - we ve the build that deploys our app in the staging and we want to deploy that which version of the app we want to deploy. ex - parameters { string(name, defaultValue, defaultDescription) and choice(name, choices, description) } lly we ve booleanParam() as well.
-- and we can use em inside the scripts and after we execute the script we can see the options build with params in the ui
-- in the jenkins file we can use the script block to define all the groovy scripts,
-- the script.groovy file - its like the py fns we can define them in the script file and then in the jenkins file we can have the "init" stage and import the script file ex - stage {"init"}{steps {script { gv = load "script.groovy"}}}
-- and in the top of the jenkins file we can define the var of the script. ex - def gv and to use that in our stages we can just use the var followed by the fn that we defined in the script ex - gv.build_app
-- all the env variables that we put it in the params {} block will be available in the grovy script we can use and also the default jenkins env param(out of the box) we can use em
+- in that ex - previously we ve the orderservice and we ve injected sms, email or push service to send our notification based on the conditions instead he made a interface and IOrderNotifier and that is what we ve to inject and then use the switch stmt for the cases.
 
 ## Data streaming for the MS using Debezium
 
@@ -332,9 +290,70 @@ These consistency models offer different trade-offs between consistency and perf
 - **Strimzi** - is the another project they ve been working on(the redhat team), what it does is
   - it provides, the container images for kafka, connect, zookeeper and mirror maker
   - operators for managing / configuring apache kafka clusters, topics and users.
-  - provides consumer, producers, admin clients and Kafka streams
+  - provides consumer, producers, admin clients and Kafka streams.
 
-## GitHub Actions
+### Extra notes from Chatgpt
+
+- **Aggregates**
+  Within a bounded context, aggregates are another fundamental concept. An aggregate is a cluster of domain objects that can be treated as a single unit. Each aggregate has:
+
+- **Root Entity**: The root entity (or aggregate root) that controls access to the aggregate and ensures its integrity. //
+  Boundary: The boundary within which all entities are treated as a whole, ensuring consistency rules are applied. //
+- **Data Boundary in Aggregates**
+  The data boundary in an aggregate defines which data entities belong to the aggregate and are managed together. //
+
+- **Encapsulation**: The aggregate root encapsulates all changes to the entities within the aggregate.
+  Consistency: Any changes to the data within the aggregate are managed to maintain consistency and invariants. //
+
+- **Logic Boundary in Aggregates**
+  The logic boundary in an aggregate refers to the encapsulation of business logic that applies to the aggregate.
+
+- **Operations:** Business logic related to the aggregate is executed through the aggregate root.
+- **Invariants**: The aggregate root ensures that the invariants (rules that must always be true) are maintained.
+
+Practical Example
+E-commerce System
+Consider an e-commerce system with the following bounded contexts:
+
+- **Order Management Context:**
+
+- **Data Boundary**: Includes entities such as Order, OrderItem, and Customer.
+  Logic Boundary: Contains business rules for placing orders, calculating totals, and validating customer information.
+- **Inventory Management Context:**
+
+Data Boundary: Includes entities such as Product, StockLevel, and Supplier.
+Logic Boundary: Contains business rules for updating stock levels, managing suppliers, and handling inventory.
+
+Aggregates within the Order Management Context
+
+- **Order Aggregate:**
+
+- Data Boundary: Includes Order as the aggregate root and OrderItem entities.
+- Logic Boundary: Business rules for order creation, adding/removing items, and calculating order total are encapsulated in the Order aggregate.
+  Customer Aggregate:
+
+- **Data Boundary:** Includes Customer as the aggregate root and associated address entities.
+- **Logic Boundary:** Business rules for validating customer information and managing addresses are encapsulated in the Customer aggregate.
+
+- Conclusion
+  In DDD, the concepts of data boundary and logic boundary are crucial for managing complexity and ensuring consistency within a system. Bounded contexts define these boundaries at a high level, ensuring that different parts of the system remain cohesive and isolated from each other. Aggregates further refine these boundaries by encapsulating data and logic, maintaining integrity, and managing business rules within a smaller scope.
+
+- **Cohesion** refers to how closely related and focused the responsibilities of a module or component are. In a highly cohesive system, components have well-defined, specific responsibilities and they do not include unrelated functionality. High cohesion is desirable because it makes the system easier to understand, maintain, and evolve.
+
+- Coupling refers to the degree of direct dependence between different modules or components. Lower coupling is desirable because it makes the system more modular and easier to change. When components are loosely coupled, changes in one component are less likely to impact others.
+
+- Cohesion: In DDD, high cohesion is achieved by organizing the domain model into aggregates that encapsulate related entities and value objects. Each aggregate represents a cohesive unit of behavior and data consistency, ensuring that business rules are enforced within the aggregate boundaries.
+- Coupling: DDD aims to achieve low coupling between different parts of the system by using bounded contexts. Each bounded context defines a clear boundary within which a particular domain model is valid, reducing dependencies between different parts of the system. Event consistency models (such as eventual consistency) often involve asynchronous communication between bounded contexts, further reducing direct coupling.
+
+- By maintaining high cohesion and low coupling, you can create a more maintainable, scalable, and robust system that aligns with the principles of DDD and supports various consistency models effectively.
+
+- **an aggregate boundary** defines the scope within which a set of related entities and value objects are considered as a single unit for the purpose of data consistency and transactional integrity.
+
+- The boundary defines the limits of the aggregate.
+  • Inside the boundary, entities and value objects can reference each other freely. //
+  • Outside the boundary, only the aggregate root can be referenced. //
+
+  ## GitHub Actions
 
 - The Github Actions is a platform to automate the dev workflows. and CI/CD is one of the workflow (in many workflows)
 - what are the workflows ? in our git repo, consider a open source the devs can add new contributors and create a pull req and create organizational task to manage
@@ -390,47 +409,47 @@ These consistency models offer different trade-offs between consistency and perf
 - **multi components** we can use multiple components inside one yml file and we can separate them by using the --- 3 indentations (and can be useful in the k8s where we ve multi components in a single yml file)
   - Note: we can also use the json format to edit our k8s configuration. inside the k8 admin ui we ve an option for that.
 
-### Extra notes from Chatgpt
+## CI/CD Pipeline (jenkins)
 
-- **Aggregates**
-  Within a bounded context, aggregates are another fundamental concept. An aggregate is a cluster of domain objects that can be treated as a single unit. Each aggregate has:
+- [https://github.com/devopsjourney1/jenkins-101](the github link in here)
+- The jenkins is not only limited to build the pipeline, we can also use this to automate any tasks, such as running the bash, py script or ansible playbooks
+- the jenkins infrastructure - we ve the **master Server** - controls the pipelines and schedules the build.
+- then we ve the **Agents**/ Minions - which runs/performs the build(which is just a bunch of linux cmds to build, test and distribute our code) in the workspace
+- and the workflow look like this ex - the dev commits the code to the git, the master will aware of this commit and triggers the appropriate pipeline and distribute the build to the agent to run.
+- The agent selection based on the configured label (by us).
+- **Agens types**
+  - 1. **permanent agent**, which are like the dedicated linux server or the windows server for running the jobs (need to ve the java and the ssh installed since the master makes the connection thru ssh)
+  - 2. **cloud Agent** - such as the Docker, K8s, or AWS fleet manager, in this scenario the jenkins can dynamically spin up the agent based on the Agent template that we provided.
+- in the git code ex - he just used the docker as the dynamic agent, so whenever we push or run the jobs, they are run in a dynamically provisioned docker container. this is similar to the k8s or the Ec2 fleet mgr to spin up the pods.
 
-**Root Entity**: The root entity (or aggregate root) that controls access to the aggregate and ensures its integrity.
-Boundary: The boundary within which all entities are treated as a whole, ensuring consistency rules are applied.
-**Data Boundary in Aggregates**
-The data boundary in an aggregate defines which data entities belong to the aggregate and are managed together.
+- **Build Types** - There are 2 main build jobs we can run in the jenkins 1. **Pipeline** 2. Freestyle Build project
+- 1. Freestyle Build project - are simplest to create and are basically the shell script that'l run on a sever and triggered by the specific events, like a dev commiting to the repo.
+- 2. Pipelines - use jenkins syntax written in grovy and specify what happens during the build.
+  - are commonly split into multiple stages such as clone, build, test(test against the newly build code), package(packaged up and ready for deployment), deploy(sending out the artifacts to the registry ex sending out the docker img to the docker hub).
+- jenkins has lots of plugins and its a beast when it comes to plugins (as compared with gitlab)
+- in the s/m configuration - manage nodes and clouds is where set up the agents as well as the clouds like k8s, aws
+- in one eg - he just create a job and(in the SCM) use his git repository url which has the py script to run
+- in the build triggers section - if we select poll scm then the master will monitor the git repository and checks for any changes.
+- in the schedule we can use like the cron jobs ex- \*/5\*\*\* to tell the master trigger our jobs for every 5mins
 
-**Encapsulation**: The aggregate root encapsulates all changes to the entities within the aggregate.
-Consistency: Any changes to the data within the aggregate are managed to maintain consistency and invariants.
+- **Setting up declarative pipeline using Grovy** - here we can directly create the pipeline script in the jenkins ui or we can point to the jenkins file in our local s/m or repo.
+- in an another ex - where we use the grovy script, and to install the packages / dependencies we just ve to give the command in the build stage ex - `cd myapp && pip install -r requirements.txt` and lly for the npm install
+- also in the grovy file we can add the additional code next to the stage(deploy) - ex post {always{}} and this file will exec always once we re done with the deployment. can be useful to send the email notificatiion to our team about the new deployment or even in the failure.
+- we can also add the failure and success block inside the post block
+- **Define the conditions** - we can also define the conditions / expressions on the stage ex - in the test stage we only want to exec that in the dev stage not in the prod, that condition we can define ex - when { expression { BRANCH_NAME == 'dev' || 'master'} {steps: `echo test`}}
 
-**Logic Boundary in Aggregates**
-The logic boundary in an aggregate refers to the encapsulation of business logic that applies to the aggregate.
+  - just like the above we can also define the conditions in the build block/stage, so we can write the expression like { BRANCH_NAME == 'dev' && CODE_CHANGES == true }} .. so this will only build our app when we made the code changes.
+  - **environment vars** - out of the box jenkins provides us some env vars we can use. we can see em in the `localhost:8080/env-vars.html` and in addition to that we can also provide our own environment variables, in the script just define the environment {} block and whatever vars we will define will be available for all the stages that we ve in the script/pipeline.
+  - and inside the stages using the string interpolation syntax we can access the variables `${BUILD_NUMBER}`
+  - inside the env block we can also define the credentials 1st define the credentials in the jenkins ui and then ex - SERVER_CREDENTIALS = credentials('credentialsId') // this credentials() fn will help us to bind the credentials to our env var.
+  - and for that we need to install couple of plugins **credentials binding and the credential plugins**
+  - if we only want the credentials to be used for only one stage(instead of all) we can use the wrapper - withCredentials([userNameAndPassword()]) // so this will allow us to get the username and password individually.. and inside that method we can define the params like credentials: 'server-credentials', usernameVariable: USER, passwordVariable: PASSWORD // storing our environment variable as USER and PASSWORD and now inside the script we can use ex - sh "some script ${USER}"
 
-**Operations:** Business logic related to the aggregate is executed through the aggregate root.
-**Invariants**: The aggregate root ensures that the invariants (rules that must always be true) are maintained.
-
-Practical Example
-E-commerce System
-Consider an e-commerce system with the following bounded contexts:
-
-**Order Management Context:**
-
-**Data Boundary**: Includes entities such as Order, OrderItem, and Customer.
-Logic Boundary: Contains business rules for placing orders, calculating totals, and validating customer information.
-**Inventory Management Context:**
-
-Data Boundary: Includes entities such as Product, StockLevel, and Supplier.
-Logic Boundary: Contains business rules for updating stock levels, managing suppliers, and handling inventory.
-
-Aggregates within the Order Management Context
-**Order Aggregate:**
-
-Data Boundary: Includes Order as the aggregate root and OrderItem entities.
-Logic Boundary: Business rules for order creation, adding/removing items, and calculating order total are encapsulated in the Order aggregate.
-Customer Aggregate:
-
-**Data Boundary:** Includes Customer as the aggregate root and associated address entities.
-**Logic Boundary:** Business rules for validating customer information and managing addresses are encapsulated in the Customer aggregate.
-
-Conclusion
-In DDD, the concepts of data boundary and logic boundary are crucial for managing complexity and ensuring consistency within a system. Bounded contexts define these boundaries at a high level, ensuring that different parts of the system remain cohesive and isolated from each other. Aggregates further refine these boundaries by encapsulating data and logic, maintaining integrity, and managing business rules within a smaller scope.
+- **tools** - this block will allow us to use specific tools for our project ex - maven, jdk, gradle.
+  - ex tools { maven 'Maven'} and in the stages we can use em sh "mvm install"
+- **using parameters for the parameterized build** - ex - we ve the build that deploys our app in the staging and we want to deploy that which version of the app we want to deploy. ex - parameters { string(name, defaultValue, defaultDescription) and choice(name, choices, description) } lly we ve booleanParam() as well.
+- and we can use em inside the scripts and after we execute the script we can see the options build with params in the ui
+- in the jenkins file we can use the script block to define all the groovy scripts,
+- the script.groovy file - its like the py fns we can define them in the script file and then in the jenkins file we can have the "init" stage and import the script file ex - stage {"init"}{steps {script { gv = load "script.groovy"}}}
+- and in the top of the jenkins file we can define the var of the script. ex - def gv and to use that in our stages we can just use the var followed by the fn that we defined in the script ex - gv.build_app
+- all the env variables that we put it in the params {} block will be available in the grovy script we can use and also the default jenkins env param(out of the box) we can use em
