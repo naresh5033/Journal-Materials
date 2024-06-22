@@ -353,6 +353,57 @@ Aggregates within the Order Management Context
   • Inside the boundary, entities and value objects can reference each other freely. //
   • Outside the boundary, only the aggregate root can be referenced. //
 
+### Design pattern 
+
+- there are like plenty of different patterns there but from the book(from 1994) they mentioned like 23 design pattern and are classified as 3 main groups 1. creational pattern (such as factory, bulder, abstract, prototype, singleton) 2. structural pattern (adapter, bridge, composite, decorator, facade, flyweight, proxy) 3. Behaviour pattern (chai of resposibility, command, interpreter, iterator, mediator, memonto, observer, state, strategy, template method, visitor)
+  - [https://refactoring.guru/](and the link to this is)
+- we will see 5 of em 
+1. strategy pattern : as we mentioned b4, just implement different class (instead of using multiple if's) or interface and each of them implements the same method with different implementation, and we can just use em with the switch statement.
+   - or just only extend the method that we want 
+2. Decorator pattern - whenever we wrap the class in another class, we re using the decorator pattern, ex - we extend the interface and then use that di inside the class
+3. Observer pattern - as we know the same anology as the rxjs observer, this pattern is whenever we want to notify the interested party to notify some changes has happened.
+  - we ve the publisher that implemented the subscribe, unsubscribe and notify method and then the subscriber who implements the subscribe, update (to let the publisher know)
+  - when a subscriber subscribes to the publisher, they can add it to the array and all the publisher needs to do is to loop thru the array and call the update method on the subscriber
+4. Singleton Pattern - single instance as we know di or if we ve an single obj and we need to ve it thread safe use it inside the lock.
+   - another way to do this in csharp is with the lazy type, ex - public static Lazy<Singleton> _lazy = new Lazy<Singleton>();
+5. Facade pattern - is simple 
+
+
+### SOLID princple
+
+- **Single Responsibility -** this is more simple principle, our class must ve single responsibility. (if its more then its prone to bugs), if we ve different uncommon responsibility, then we ve to think of creating different class or services.
+  - single responsibility does not mean only one Job, it simply means that everything it does is closely related.
+- **Open/Closed** - it states that our code should be Opento **extension** but closed to **modification**
+  - ex - in the csharp, one way to achieve this principle is by using the decorator pattern.
+  - the benefit of this is we can use the DI to control in the run time to be able to control which class used.
+  - another option is to use the Extension method, as we know it will allow us to add an new to the existing class w/o actually having to change that file. (unlike the deocorator pattern we can't switch it from the run time when this code is used)
+  - There are many different ways we can extend the functionality of our app(w/o having to change the existing code) such as inheritance, attributes.
+- **Liskov Substituition Principle** - it states that the child class can do everything that the parent class can.
+- **Interface Segration Principle** - if we have bunch of methods in our interface then while implementing the interface we ve to override them in the implementation class (whether the class required the fns or not),.
+  - so instead we can split the functionality of the interface and separate em and then implementing only the interfaces that the class requires. 
+  - we can also think of SAM interfaces(note from the java.md file)
+- **Dependency Inversion** - states that Higher Level modules shouldn't depend on the low level module, instead they both should depend on the abstraction.
+- and the notes from the nest js (IOC) we ve clear not about this Dependency Inversion.
+- if we ve a service class, if we ve a service class and if we create a the instance of the repository inside the service which means our service (which is the higher level module) is dependent on the repository(which is the lower level module).
+- so instead we ve to create a interface for the repository and we can interact with thru that (so now here the interface is the abstraction), and it also give us the flexibility in the testing (since the read / write in the interface is cheaper op that using the actual repository itself, just for the testing purposes).
+
+- Having said that the solid principle still have some drawbacks, which was short come in the **CUPID** principle.
+
+### Cupid principle
+
+- **Composability** - The composability is the code that placed well with the other code (and its consistent and easy to integrate into other different places)
+- **Unix like** - comes from the philosophy of unix - doing one thing well, in the unix command set there is lot of tiny little set (ex - cat, grep cmds) and we chain all these things together, and we'll get  our composability again 
+- **Predictability** - is like the deterministic (as we know it means every time it produces the same result) or it produces the same result.
+- **Idiomatic** - is like write the code like every one can write (or uderstand ) aka readability.
+- **Domain Based** - the code should be written in the language of the domain of the problem.
+
+- **Adapter design pattern** (is the analogy of the electrical adapter) - There are bunch of things the adapter design pattern will alllow us to do.
+  1. allows 2 incompatible interfaces to work together
+  2. used when the client expects (target) interface.
+  3. The adapter class allows the use of the available interfaces and the target interface.
+  4. Any class can work together as long as the adapter solves the issue that all classes must implement every method defined by the shared interface. 
+- here we ve like the target interface connects to the adapter(is also an interface) and this will connect to the adaptee.
+- the way it works is inside the adapter interface we will use the adaptee interface, and every time the source interface is called the adapter it will perfectly point to the method that declared in the adaptee
   ## GitHub Actions
 
 - The Github Actions is a platform to automate the dev workflows. and CI/CD is one of the workflow (in many workflows)
