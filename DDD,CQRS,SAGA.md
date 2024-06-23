@@ -353,21 +353,23 @@ Aggregates within the Order Management Context
   • Inside the boundary, entities and value objects can reference each other freely. //
   • Outside the boundary, only the aggregate root can be referenced. //
 
-### Design pattern 
+### Design pattern
 
 - there are like plenty of different patterns there but from the book(from 1994) they mentioned like 23 design pattern and are classified as 3 main groups 1. creational pattern (such as factory, bulder, abstract, prototype, singleton) 2. structural pattern (adapter, bridge, composite, decorator, facade, flyweight, proxy) 3. Behaviour pattern (chai of resposibility, command, interpreter, iterator, mediator, memonto, observer, state, strategy, template method, visitor)
   - [https://refactoring.guru/](and the link to this is)
-- we will see 5 of em 
+- we will see 5 of em
+
 1. strategy pattern : as we mentioned b4, just implement different class (instead of using multiple if's) or interface and each of them implements the same method with different implementation, and we can just use em with the switch statement.
-   - or just only extend the method that we want 
+   - or just only extend the method that we want
 2. Decorator pattern - whenever we wrap the class in another class, we re using the decorator pattern, ex - we extend the interface and then use that di inside the class
 3. Observer pattern - as we know the same anology as the rxjs observer, this pattern is whenever we want to notify the interested party to notify some changes has happened.
-  - we ve the publisher that implemented the subscribe, unsubscribe and notify method and then the subscriber who implements the subscribe, update (to let the publisher know)
-  - when a subscriber subscribes to the publisher, they can add it to the array and all the publisher needs to do is to loop thru the array and call the update method on the subscriber
-4. Singleton Pattern - single instance as we know di or if we ve an single obj and we need to ve it thread safe use it inside the lock.
-   - another way to do this in csharp is with the lazy type, ex - public static Lazy<Singleton> _lazy = new Lazy<Singleton>();
-5. Facade pattern - is simple 
 
+- we ve the publisher that implemented the subscribe, unsubscribe and notify method and then the subscriber who implements the subscribe, update (to let the publisher know)
+- when a subscriber subscribes to the publisher, they can add it to the array and all the publisher needs to do is to loop thru the array and call the update method on the subscriber
+
+4. Singleton Pattern - single instance as we know di or if we ve an single obj and we need to ve it thread safe use it inside the lock.
+   - another way to do this in csharp is with the lazy type, ex - public static Lazy<Singleton> \_lazy = new Lazy<Singleton>();
+5. Facade pattern - is simple
 
 ### SOLID princple
 
@@ -380,7 +382,7 @@ Aggregates within the Order Management Context
   - There are many different ways we can extend the functionality of our app(w/o having to change the existing code) such as inheritance, attributes.
 - **Liskov Substituition Principle** - it states that the child class can do everything that the parent class can.
 - **Interface Segration Principle** - if we have bunch of methods in our interface then while implementing the interface we ve to override them in the implementation class (whether the class required the fns or not),.
-  - so instead we can split the functionality of the interface and separate em and then implementing only the interfaces that the class requires. 
+  - so instead we can split the functionality of the interface and separate em and then implementing only the interfaces that the class requires.
   - we can also think of SAM interfaces(note from the java.md file)
 - **Dependency Inversion** - states that Higher Level modules shouldn't depend on the low level module, instead they both should depend on the abstraction.
 - and the notes from the nest js (IOC) we ve clear not about this Dependency Inversion.
@@ -392,7 +394,7 @@ Aggregates within the Order Management Context
 ### Cupid principle
 
 - **Composability** - The composability is the code that placed well with the other code (and its consistent and easy to integrate into other different places)
-- **Unix like** - comes from the philosophy of unix - doing one thing well, in the unix command set there is lot of tiny little set (ex - cat, grep cmds) and we chain all these things together, and we'll get  our composability again 
+- **Unix like** - comes from the philosophy of unix - doing one thing well, in the unix command set there is lot of tiny little set (ex - cat, grep cmds) and we chain all these things together, and we'll get our composability again
 - **Predictability** - is like the deterministic (as we know it means every time it produces the same result) or it produces the same result.
 - **Idiomatic** - is like write the code like every one can write (or uderstand ) aka readability.
 - **Domain Based** - the code should be written in the language of the domain of the problem.
@@ -401,9 +403,10 @@ Aggregates within the Order Management Context
   1. allows 2 incompatible interfaces to work together
   2. used when the client expects (target) interface.
   3. The adapter class allows the use of the available interfaces and the target interface.
-  4. Any class can work together as long as the adapter solves the issue that all classes must implement every method defined by the shared interface. 
+  4. Any class can work together as long as the adapter solves the issue that all classes must implement every method defined by the shared interface.
 - here we ve like the target interface connects to the adapter(is also an interface) and this will connect to the adaptee.
 - the way it works is inside the adapter interface we will use the adaptee interface, and every time the source interface is called the adapter it will perfectly point to the method that declared in the adaptee
+
   ## GitHub Actions
 
 - The Github Actions is a platform to automate the dev workflows. and CI/CD is one of the workflow (in many workflows)
