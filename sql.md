@@ -801,6 +801,10 @@ SELECT age, COUNT(age) FROM users GROUP BY age HAVING count(age) >=2;
 ### InfluxQL 2.0
 
 - in the influx admin ui, we  can see the naming convention has changed, **Buckets** - are dbs.
+- The Continuous Query has been renamed to **Tasks**
 - and these buckets will be created based on the RetentionPolicy.
 - in this newer version we can pretty much do everything in the dashboard/ui of the influx. such as write the query, visualizing, add filters etc
-
+- **DownSampling** - the way it works, we wanna down sampling the data into one bucket and put it into another bucket. 
+  - mostly the down sampling data are the aggregate or mean values
+- **Note** Refer the "Influx Data/community-templates" repo for some predefined yml templates files for the queries such as for down sampling, and we can also find some eg for grafana etc.
+  - [link to the is here](https://github.com/influxdata/community-templates)
