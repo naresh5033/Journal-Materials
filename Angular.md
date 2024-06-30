@@ -401,8 +401,8 @@ to make an observable from the click() event, ex const clicks = Rx.Observable.fr
 const observ = Rx.Observable.fromPromise(prom) ` // then we subscribe to it
 
 - we can also set the timer ex - `const timer = Rx.Observable.timer(1000); //
-                            timer.subscribe()
-                            ex - interval.subscribe((int) = > print(new Date(getSeconds())))` // lly we can set the interval and on observable
+                        timer.subscribe()
+                        ex - interval.subscribe((int) = > print(new Date(getSeconds())))` // lly we can set the interval and on observable
 
   - will prints the seconds at 1 sec interval
 
@@ -446,7 +446,7 @@ const observ = Rx.Observable.fromPromise(prom) ` // then we subscribe to it
 
 - **switchMap()** this fn is specially useful when we ve one observer we need a val from b4 we get can the 2nd observable.
 - ex - `const clicks = Rx.Observable.fromEvent(document, 'click');
-  clicks.switchMap(click => {return Rx.Observable.interval(500)}).subscribe(i => print(i))`
+clicks.switchMap(click => {return Rx.Observable.interval(500)}).subscribe(i => print(i))`
   // so the counter/ timer will start and for the new click the timer will reset and start from the 0
 
   - swithcMap() is commonly used in app dev, when we ve the observable user Id and we need the user id first b4 querying the data.
