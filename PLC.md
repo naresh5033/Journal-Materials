@@ -69,7 +69,7 @@
 - Functions - ex - `Function celsiusToFar : REAL
                    VAR_INPUT: celsius: REAL; 
                    END_VAR
-                   celsiusToFar :=  celsius * 1.8 +32;  ` - is the return stmt - inside that we can also define the var for the function scoped just like the var i/p param.
+                   celsiusToFar :=  celsius * 1.8 +32;` - is the return stmt - inside that we can also define the var for the function scoped just like the var i/p param.
 - Functions can also ve the i/p and the o/p vars (params and the return are of same type) - in that case we can use VAR_IN_OUT(inside we can declare our params) END_VAR_IN_OUT - means we can do both read and write from the same var.
 
 - **Pass By val and pass by ref -** we can pass the var (params) either by reference or val.
@@ -135,7 +135,7 @@
   - follows FIFO, the oldest entry/record in the ring buffer are the 1st one to read.
   - when we instantiate this fb, we will ve the read and the write ptr, both pointing to the 1st position in the buffer, these pointers moves f/w as the val comes in and once the read is done the val will be removed from the buff.
 
-2.  Profiler (from plc) - which allows to measure the exec time of the plc code.
+2. Profiler (from plc) - which allows to measure the exec time of the plc code.
 
 - it is useful when we want to understand the part of our code takes more time to exec. it has 2 i/p - start and reset (both are bool), and 2 o/p busy and data (profiler struct)
 - the fb takes the last 10 measurements and calc the mean val and provides that in the o/p
@@ -215,7 +215,7 @@
 - when working with the development of the tc s/w there are many different steps involved (even for the basic s/w and deploy it on to the target device). such as
 
   1.  Defining the Real Time Properties
-  2.  writing the unit tests
+  2. writing the unit tests
   3.  writing of s/w ( creation of PoU and business logic)
   4.  I/O (creating io and linking em to the instances of the pou's)
   5.  lib management
@@ -243,3 +243,8 @@
 
 - we can do automation for em, the tc provides bindings for various prog langs, (so we can do the automation in various prog langs)
 - for this Automation we need Visual Studio(DTE) and the tc automation interface.
+- in our vs (Dte) once we create the project(just a simple console app), we can select the dependency and add com references, and select the beckhoff tc xae base lib
+- then we ve to add the reference, (we ve to add the dte) we can use the nugget package mgr to add the **envDTE**, and ndesk option (parser)
+- for the code he mostly took from that parser lib. 
+- we will use this client to connect with the ams net id (if the ams is not provided then we can use the local /vm id to connect)
+- for the automation interface part we can find the doc(example) in the beckhoff site. 
