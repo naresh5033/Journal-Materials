@@ -99,7 +99,7 @@
 - we can think of fn blocks as the class - it can inherit/extends only one fn block but many interfaces.
 - **DI** - also uses the DI for the dependencies, can be achieved by using the **FB_INIT** method, can be called whenever an obj is instantiated.
   - so iniside the FB_init function block we can add our interface that we want to instantiate in the var.
-  - and this fb_init method, we can think of like the ctor.
+  - and this fb_init method, we can think of like the ctor. and also we can use the **This** kw to assign  the var to that instance.
 
 ### part 7 instructions
 
@@ -247,4 +247,43 @@
 - then we ve to add the reference, (we ve to add the dte) we can use the nugget package mgr to add the **envDTE**, and ndesk option (parser)
 - for the code he mostly took from that parser lib. 
 - we will use this client to connect with the ams net id (if the ams is not provided then we can use the local /vm id to connect)
-- for the automation interface part we can find the doc(example) in the beckhoff site. 
+- for the automation interface part we can find the doc(example) in the beckhoff site.
+- in that automation interface part, we can also see in the documentation, opening and activating the existing config can use this c# code.
+  - and in that api section - **ITC sysManager** is the main interface of the tc automation interface. and in that find the set target netId which is str(ams net id)
+  - we do ve to implement the message filter class (code in the documentation) in the automation interface.
+
+### Part 17 TDD
+
+- as we know the TDD starts with the failing test(focus at this point is only the behavior of the code) and then we wrtie the code until the test pass.
+- why should we consider this ?
+  1. the TDD extends more modularized, flexible and extensible code.
+  2. Regression test suite
+  3. clearly defined interfaces 
+  4. fewer bugs
+  5. Documentation(since our test cases clearly describes)
+  6. acceptane criteria (assert equals - there are like plenty basically for any dtype we can think of )
+  7. Tider code.
+
+- as usual this TDD can be integrated into our ci (pipeline)
+
+- **TC Unit** framework for doing the unit tests. (just install like the lib / dep and then mark reference in our tc prog)
+- to create a test suite, we ve to extend our test (fb) to the fb_testSuite (part of the tc unit)
+- inside our test suite we will ve diff methods(aka fn) to execute our tests.
+- finally in our main prg, we can call the TcUnit.run() method to call/exec our test suite.
+
+- if we want our Event buffer(mem ring buff) to handle the multiple events then we can use like ex - we want the event buffer to handle 3 events, then make the Array 
+  - ex - Array [0..(3 * SIZEOF(st_event))], size of our event and multiplies by the no.of events we want to handle in our buff.
+- The test suits seems like the -> TEST ("description") body (method for each test), TEST_FINISHED().
+
+----------------------------------------------------------------
+
+### TC 3.1 (4026)
+
+- some of the changes they made into this version is 
+- new package manager - called **TcPkg**.exe, now the xae and xar are split into various fns for the package that they ve provided.
+- this made everything split into a component instead of having only 2 big components (xae and xar which are bloated with diff stuff)
+- with this approach its more like cofig as the code. 
+- once we install the package manager, it comes with the cli and the ui and `tcpkg` cmd for that 
+- and this time around the tcxae shell supports 64 bit, so far we ve been able to use only 32 bit which has the mem limit but with this update its not the case anymore.
+- in the pkg they ve std (ombination of both xae and xar) and the seperate xae and xar versions.
+- 
